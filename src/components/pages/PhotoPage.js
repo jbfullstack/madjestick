@@ -68,9 +68,7 @@ const PhotoPage = () => {
         {selectedCategory === "all" ? (
           Object.entries(photoGalleries).map(([category, photos]) => (
             <div key={category} className="photo-category">
-              <h2>
-                {category.charAt(0).toUpperCase() + category.slice(1)} Photos
-              </h2>
+              <h2>{category.charAt(0).toUpperCase() + category.slice(1)}</h2>
               <div className="images-grid">
                 {photos.map((photo, index) => (
                   <img

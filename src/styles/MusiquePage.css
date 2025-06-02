@@ -174,11 +174,35 @@
   overflow: hidden;
 }
 
+/* Disabled progress bar for text-only entries */
+.progress-bar-disabled {
+  flex: 1;
+  height: 8px;
+  background: linear-gradient(
+    90deg,
+    rgba(200, 200, 200, 0.3),
+    rgba(180, 180, 180, 0.5)
+  );
+  border-radius: 10px;
+  cursor: not-allowed;
+  position: relative;
+  overflow: hidden;
+  opacity: 0.5;
+}
+
 .progress-fill {
   height: 100%;
   background: linear-gradient(90deg, #9370db, #4169e1);
   border-radius: 10px;
   transition: width 0.3s ease;
+  position: relative;
+}
+
+.progress-fill-disabled {
+  height: 100%;
+  background: linear-gradient(90deg, #ccc, #aaa);
+  border-radius: 10px;
+  width: 0%;
   position: relative;
 }
 

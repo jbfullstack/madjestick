@@ -16,9 +16,9 @@ function App() {
         return <HomePage />;
       case "chrono":
         return <ChronoPage />;
-      case "photo":
+      case "photos":
         return <PhotoPage />;
-      case "musique":
+      case "musiques":
         return <MusiquePage />;
       default:
         return <HomePage />;

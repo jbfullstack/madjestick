@@ -6,8 +6,8 @@ const Navigation = ({ currentPage, setCurrentPage }) => {
   const menuItems = [
     { id: "home", label: "Home" },
     { id: "chrono", label: "Chrono" },
-    { id: "photo", label: "Photo" },
-    { id: "musique", label: "Musique" },
+    { id: "photos", label: "Photos" },
+    { id: "musiques", label: "Musiques" },
   ];
 
   return (

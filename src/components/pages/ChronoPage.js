@@ -13,8 +13,8 @@ const ChronoPage = () => {
       <div className="chrono-display">
         <Counter timeSinceWedding={timeSinceWedding} />
         <div className="chrono-details">
-          <p>Depuis le 2 may 2025 à 22h00</p>
-          <p>Every second counts in your beautiful journey together!</p>
+          <p>Depuis le 2 mai 2025 à 22h00</p>
+          <p>Every second counts in our beautiful journey together!</p>
           <div className="chrono-stats">
             <div className="stat-item">
               <span className="stat-number">

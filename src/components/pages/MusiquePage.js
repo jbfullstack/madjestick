@@ -21,14 +21,7 @@ const MusiquePage = () => {
       artist: "Djé",
       file: Song1, // Using imported file
       type: "audio", // Has music
-      lyrics: `[Verse 1]
-Diladidadouu
-
-[Chorus]
-Diladidadouu
-
-[Verse 2]
-Diladidadouu`,
+      lyrics: `Pas de parole 🎤`,
     },
     {
       id: 2,
@@ -145,6 +138,9 @@ J'aurais jamais cru vouloir le faire
 
   const handleProgressClick = (e) => {
     const audio = audioRef.current;
+    // Only handle progress click if there's an audio file
+    if (!audio || !selectedSong.file || selectedSong.type === "text") return;
+
     const progressBar = e.currentTarget;
     const clickX = e.nativeEvent.offsetX;
     const width = progressBar.offsetWidth;
@@ -188,18 +184,32 @@ J'aurais jamais cru vouloir le faire
             <p>by {selectedSong.artist}</p>
           </div>
 
-          <div className="progress-container">
-            <span className="time">{formatTime(currentTime)}</span>
-            <div className="progress-bar" onClick={handleProgressClick}>
-              <div
-                className="progress-fill"
-                style={{
-                  width: `${duration ? (currentTime / duration) * 100 : 0}%`,
-                }}
-              ></div>
+          {/* Progress bar - only show if current song has audio */}
+          {selectedSong.type === "audio" && (
+            <div className="progress-container">
+              <span className="time">{formatTime(currentTime)}</span>
+              <div className="progress-bar" onClick={handleProgressClick}>
+                <div
+                  className="progress-fill"
+                  style={{
+                    width: `${duration ? (currentTime / duration) * 100 : 0}%`,
+                  }}
+                ></div>
+              </div>
+              <span className="time">{formatTime(duration)}</span>
             </div>
-            <span className="time">{formatTime(duration)}</span>
-          </div>
+          )}
+
+          {/* Show static progress bar for text-only */}
+          {selectedSong.type === "text" && (
+            <div className="progress-container">
+              <span className="time">--:--</span>
+              <div className="progress-bar-disabled">
+                <div className="progress-fill-disabled"></div>
+              </div>
+              <span className="time">--:--</span>
+            </div>
+          )}
 
           {/* Only show controls if current song has audio */}
           {selectedSong.type === "audio" && (
