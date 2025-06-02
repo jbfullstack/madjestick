@@ -2,11 +2,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import "../../styles/MusiquePage.css";
 
-// Import your actual music files from the sounds folder
-// Uncomment and add your actual files:
-// import Song1 from "../../sounds/first-dance.mp3";
-// import Song2 from "../../sounds/wedding-march.wav";
-// import Song3 from "../../sounds/our-song.mp3";
+// Import your audio files directly
+import Song1 from "../../sounds/first_guitare_compo.mp3";
+// import Song2 from "../../sounds/votre-deuxieme-fichier.wav";
 
 const MusiquePage = () => {
   const [currentSong, setCurrentSong] = useState(0);
@@ -15,14 +13,14 @@ const MusiquePage = () => {
   const [duration, setDuration] = useState(0);
   const audioRef = useRef(null);
 
-  // Replace with your actual music files from /sounds folder
+  // Your actual music library with imported files
   const musicLibrary = [
     {
       id: 1,
       title: "Première compo guitare",
       artist: "Djé",
-      // file: Song1, // Use this when you import your actual file
-      file: "/sounds/first_guitare_compo.mp3", // Direct path to your file
+      file: Song1, // Using imported file
+      type: "audio", // Has music
       lyrics: `[Verse 1]
 Diladidadouu
 
@@ -36,11 +34,9 @@ Diladidadouu`,
       id: 2,
       title: "Mes doigts entre leurs tripes",
       artist: "Djé",
-      // file: Song2, // Use this when you import your actual file
-      file: "/sounds/....wav", // Direct path to your file
-      lyrics: `
-
-Ils ton dit de venir
+      file: null, // No music file - text only
+      type: "text", // Text only
+      lyrics: `Ils ton dit de venir
 Petite soirée sympa en devenir
 Tu les connais, tu ne t'es pas méfié, 
 Vous alliez juste festoyer 
@@ -61,7 +57,6 @@ La crasse le pire de ce qui ce fait de vivant
 Prémédité, les preuve sont là 
 Les audio des échanges téléphoniques ne trompes pas
 
-
 Mes doigts qui traînent entre leurs tripes
 Ambiance sonore à base de mauvais soupirs
 Et ca tristement , suplie "pardon"
@@ -77,33 +72,16 @@ La fin du supplice se fondra dans la rosé...
 ..Du matin
 2 de moins, c'est bien
 J'aurais jamais cru vouloir le faire
-Être satisfait d'avoir calmé 2 corps à terres`,
+Être satisfait d'avoir calmé 2 corps à terres`,
     },
-    //     {
-    //       id: 3,
-    //       title: "Our Song",
-    //       artist: "Romantic Duo",
-    //       // file: Song3, // Use this when you import your actual file
-    //       file: "/sounds/our-song.mp3", // Direct path to your file
-    //       lyrics: `[Verse 1]
-    // Remember when we first met
-    // That magic I can't forget
-    // Your laughter filled the air
-    // I knew that you would always care
-
-    // [Chorus]
-    // This is our song, our melody
-    // Playing through eternity
-    // Every note tells our story
-    // Of love and endless glory`,
-    //     },
-    // Add more songs here as needed:
+    // Ajoutez d'autres textes ou chansons :
     // {
-    //   id: 4,
-    //   title: "Another Song",
-    //   artist: "Artist Name",
-    //   file: "/sounds/another-song.wav",
-    //   lyrics: `Your lyrics here...`
+    //   id: 3,
+    //   title: "Autre texte",
+    //   artist: "Djé",
+    //   file: null,
+    //   type: "text",
+    //   lyrics: `Vos paroles ici...`
     // },
   ];
 
@@ -136,7 +114,7 @@ J'aurais jamais cru vouloir le faire
     } else {
       audio.play().catch((error) => {
         console.error("Error playing audio:", error);
-        // Handle audio play errors (e.g., file not found)
+        alert(`Impossible de lire le fichier audio: ${selectedSong.file}`);
       });
     }
     setIsPlaying(!isPlaying);
@@ -177,7 +155,7 @@ J'aurais jamais cru vouloir le faire
 
   return (
     <div className="musique-page">
-      <h1>Wedding Music</h1>
+      <h1>Musique de Djé</h1>
 
       <div className="music-player">
         <div className="playlist">
@@ -189,7 +167,12 @@ J'aurais jamais cru vouloir le faire
               onClick={() => selectSong(index)}
             >
               <div className="song-info">
-                <div className="song-title">{song.title}</div>
+                <div className="song-title">
+                  {song.title}
+                  {song.type === "text" && (
+                    <span className="text-only-badge"> 📝</span>
+                  )}
+                </div>
                 <div className="song-artist">by {song.artist}</div>
               </div>
               {currentSong === index && isPlaying && (
@@ -218,51 +201,92 @@ J'aurais jamais cru vouloir le faire
             <span className="time">{formatTime(duration)}</span>
           </div>
 
-          <div className="controls">
-            <button
-              className="control-btn"
-              onClick={() =>
-                selectSong(
-                  currentSong > 0 ? currentSong - 1 : musicLibrary.length - 1
-                )
-              }
-              title="Previous song"
-            >
-              ⏮️
-            </button>
-            <button
-              className="play-pause-btn"
-              onClick={playPauseHandler}
-              title={isPlaying ? "Pause" : "Play"}
-            >
-              {isPlaying ? "⏸️" : "▶️"}
-            </button>
-            <button
-              className="control-btn"
-              onClick={() =>
-                selectSong(
-                  currentSong < musicLibrary.length - 1 ? currentSong + 1 : 0
-                )
-              }
-              title="Next song"
-            >
-              ⏭️
-            </button>
-          </div>
+          {/* Only show controls if current song has audio */}
+          {selectedSong.type === "audio" && (
+            <div className="controls">
+              <button
+                className="control-btn"
+                onClick={() =>
+                  selectSong(
+                    currentSong > 0 ? currentSong - 1 : musicLibrary.length - 1
+                  )
+                }
+                title="Previous song"
+              >
+                ⏮️
+              </button>
+              <button
+                className="play-pause-btn"
+                onClick={playPauseHandler}
+                title={isPlaying ? "Pause" : "Play"}
+              >
+                {isPlaying ? "⏸️" : "▶️"}
+              </button>
+              <button
+                className="control-btn"
+                onClick={() =>
+                  selectSong(
+                    currentSong < musicLibrary.length - 1 ? currentSong + 1 : 0
+                  )
+                }
+                title="Next song"
+              >
+                ⏭️
+              </button>
+            </div>
+          )}
 
-          <audio
-            ref={audioRef}
-            src={selectedSong.file}
-            preload="metadata"
-            onError={(e) => {
-              console.error("Audio error:", e);
-              // You can add user feedback here if needed
-            }}
-          />
+          {/* Show message for text-only entries */}
+          {selectedSong.type === "text" && (
+            <div className="text-only-message">
+              <p>📝 Texte seulement - Pas de musique disponible</p>
+              <div className="text-controls">
+                <button
+                  className="control-btn"
+                  onClick={() =>
+                    selectSong(
+                      currentSong > 0
+                        ? currentSong - 1
+                        : musicLibrary.length - 1
+                    )
+                  }
+                  title="Texte précédent"
+                >
+                  ⏮️
+                </button>
+                <button
+                  className="control-btn"
+                  onClick={() =>
+                    selectSong(
+                      currentSong < musicLibrary.length - 1
+                        ? currentSong + 1
+                        : 0
+                    )
+                  }
+                  title="Texte suivant"
+                >
+                  ⏭️
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Audio element only for songs with files */}
+          {selectedSong.file && (
+            <audio
+              ref={audioRef}
+              src={selectedSong.file}
+              preload="metadata"
+              onError={(e) => {
+                console.error("Audio error:", e);
+                console.log("Trying to load:", selectedSong.file);
+              }}
+            />
+          )}
         </div>
 
         <div className="lyrics">
-          <h3>Lyrics</h3>
+          <h3>Paroles</h3>
           <div className="lyrics-text">
             {selectedSong.lyrics.split("\n").map((line, index) => (
               <p key={index}>{line}</p>

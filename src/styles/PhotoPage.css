@@ -5,10 +5,11 @@
   max-width: 1400px;
   margin: 0 auto;
   min-height: 80vh;
+  font-family: "Dancing Script", cursive;
 }
 
 .photo-page h1 {
-  color: #ff69b4;
+  color: #9370db;
   font-size: 2.5em;
   margin-bottom: 40px;
   text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
@@ -18,11 +19,11 @@
 
 @keyframes photoGlow {
   from {
-    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 10px #ff69b4;
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 10px #9370db;
   }
   to {
-    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 20px #ff1493,
-      0 0 30px #ff69b4;
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 20px #ba55d3,
+      0 0 30px #4169e1;
   }
 }
 
@@ -40,10 +41,11 @@
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.9),
-    rgba(255, 192, 203, 0.3)
+    rgba(221, 160, 221, 0.3),
+    rgba(173, 216, 230, 0.2)
   );
-  border: 2px solid #ff69b4;
-  color: #ff1493;
+  border: 2px solid #ba55d3;
+  color: #9370db;
   font-size: 1.1em;
   font-family: "Dancing Script", cursive;
   font-weight: 600;
@@ -78,19 +80,19 @@
 
 .filter-button:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(255, 105, 180, 0.3);
-  border-color: #ff1493;
+  box-shadow: 0 6px 12px rgba(147, 112, 219, 0.3);
+  border-color: #9370db;
 }
 
 .filter-button.active {
-  background: linear-gradient(135deg, #ff69b4, #ff1493);
+  background: linear-gradient(135deg, #9370db, #ba55d3, #4169e1);
   color: white;
   transform: scale(1.05);
-  box-shadow: 0 6px 15px rgba(255, 105, 180, 0.4);
+  box-shadow: 0 6px 15px rgba(147, 112, 219, 0.4);
 }
 
 .filter-button.active:hover {
-  background: linear-gradient(135deg, #ff1493, #db7093);
+  background: linear-gradient(135deg, #ba55d3, #4169e1, #6495ed);
 }
 
 /* Photos Container */
@@ -100,10 +102,11 @@
 
 .photo-category {
   margin-bottom: 50px;
+  position: relative;
 }
 
 .photo-category h2 {
-  color: #ff1493;
+  color: #9370db;
   font-size: 1.8em;
   margin-bottom: 25px;
   text-align: center;
@@ -112,10 +115,11 @@
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.8),
-    rgba(255, 192, 203, 0.3)
+    rgba(221, 160, 221, 0.3),
+    rgba(173, 216, 230, 0.2)
   );
   border-radius: 15px;
-  border: 1px solid rgba(255, 105, 180, 0.3);
+  border: 1px solid rgba(186, 85, 211, 0.3);
 }
 
 /* Images Grid */
@@ -130,7 +134,7 @@
   width: 100%;
   height: 250px;
   border-radius: 15px;
-  border: 3px solid #ff69b4;
+  border: 3px solid #ba55d3;
   object-fit: cover;
   transition: all 0.4s ease;
   cursor: pointer;
@@ -148,8 +152,8 @@
   bottom: 0;
   background: linear-gradient(
     45deg,
-    rgba(255, 105, 180, 0.1),
-    rgba(255, 20, 147, 0.1)
+    rgba(147, 112, 219, 0.1),
+    rgba(65, 105, 225, 0.1)
   );
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -161,23 +165,27 @@
 
 .photo-gallery:hover {
   transform: scale(1.05) rotate(1deg);
-  box-shadow: 0 10px 25px rgba(255, 105, 180, 0.4);
-  border-color: #ff1493;
+  box-shadow: 0 10px 25px rgba(147, 112, 219, 0.4);
+  border-color: #9370db;
 }
 
 .photo-gallery:nth-child(2n):hover {
   transform: scale(1.05) rotate(-1deg);
+  border-color: #4169e1;
+  box-shadow: 0 10px 25px rgba(65, 105, 225, 0.4);
 }
 
 .photo-gallery:nth-child(3n):hover {
   transform: scale(1.08) rotate(2deg);
+  border-color: #ba55d3;
 }
 
 .photo-gallery:nth-child(4n):hover {
   transform: scale(1.08) rotate(-2deg);
+  border-color: #6495ed;
 }
 
-/* Lightbox effect on click (you can enhance this with a modal later) */
+/* Lightbox effect on click */
 .photo-gallery:active {
   transform: scale(0.98);
 }
@@ -225,7 +233,7 @@
 
 /* Heart decoration for romantic touch */
 .photo-category::before {
-  content: "💕";
+  content: "💙💜";
   position: absolute;
   top: -10px;
   right: 20px;

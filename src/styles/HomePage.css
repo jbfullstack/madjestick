@@ -7,7 +7,7 @@
 }
 
 .home-page h1 {
-  color: #ff69b4;
+  color: #9370db;
   font-size: 2.5em;
   margin-bottom: 30px;
   text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
@@ -16,11 +16,11 @@
 
 @keyframes titleGlow {
   from {
-    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 10px #ff69b4;
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 10px #9370db;
   }
   to {
-    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 20px #ff1493,
-      0 0 30px #ff69b4;
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 20px #ba55d3,
+      0 0 30px #9370db, 0 0 35px #4169e1;
   }
 }
 
@@ -36,7 +36,7 @@
   width: 100%;
   height: 200px;
   border-radius: 15px;
-  border: 3px solid #ff69b4;
+  border: 3px solid #ba55d3;
   object-fit: cover;
   transition: all 0.3s ease;
   cursor: pointer;
@@ -45,30 +45,33 @@
 
 .photo-thumbnail:hover {
   transform: scale(1.05) rotate(2deg);
-  box-shadow: 0 8px 16px rgba(255, 105, 180, 0.4);
-  border-color: #ff1493;
+  box-shadow: 0 8px 16px rgba(147, 112, 219, 0.4);
+  border-color: #9370db;
 }
 
 .photo-thumbnail:nth-child(even):hover {
   transform: scale(1.05) rotate(-2deg);
+  border-color: #4169e1;
+  box-shadow: 0 8px 16px rgba(65, 105, 225, 0.4);
 }
 
 .sentence {
   margin-top: 40px;
   font-size: 1.5em;
-  color: #db7093;
+  color: #8b4a9c;
   text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.7),
-    rgba(255, 192, 203, 0.3)
+    rgba(255, 255, 255, 0.8),
+    rgba(221, 160, 221, 0.3),
+    rgba(173, 216, 230, 0.2)
   );
   padding: 25px;
   border-radius: 20px;
-  border: 2px solid rgba(255, 105, 180, 0.3);
+  border: 2px solid rgba(186, 85, 211, 0.3);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -81,7 +84,7 @@
 .sentence p::after {
   content: "|";
   animation: blink 1s step-end infinite;
-  color: #ff69b4;
+  color: #9370db;
   font-weight: bold;
 }
 

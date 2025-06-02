@@ -45,14 +45,14 @@ h1 {
   height: 200px;
   margin: 10px;
   border-radius: 10px;
-  border: 2px solid #ff69b4;
+  border: 2px solid #6978ff;
   object-fit: cover;
 }
 
 .sentence {
   margin-top: 30px;
   font-size: 1.5em;
-  color: #db7093;
+  color: #226ac9;
   text-shadow: 1px 1px 2px #fff;
   max-width: 800px;
 }

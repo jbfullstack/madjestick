@@ -11,16 +11,17 @@
 .counter p {
   margin: 0;
   font-size: 1.5em;
-  color: #ff1493;
+  color: #9370db;
   text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.9),
-    rgba(255, 192, 203, 0.3)
+    rgba(221, 160, 221, 0.4),
+    rgba(173, 216, 230, 0.3)
   );
   padding: 15px 20px;
   border-radius: 15px;
-  border: 2px solid #ff69b4;
+  border: 2px solid #ba55d3;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   min-width: 120px;
@@ -49,8 +50,9 @@
 
 .counter p:hover {
   transform: translateY(-5px) scale(1.05);
-  box-shadow: 0 8px 16px rgba(255, 105, 180, 0.3);
-  border-color: #ff1493;
+  box-shadow: 0 8px 16px rgba(147, 112, 219, 0.3);
+  border-color: #9370db;
+  color: #4169e1;
 }
 
 .counter p:hover::before {

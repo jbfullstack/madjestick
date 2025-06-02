@@ -9,7 +9,7 @@
 }
 
 .chrono-page h1 {
-  color: #ff69b4;
+  color: #9370db; /* Medium Slate Blue */
   font-size: 3em;
   margin-bottom: 40px;
   text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
@@ -18,11 +18,11 @@
 
 @keyframes chronoGlow {
   from {
-    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 15px #ff69b4;
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 15px #9370db;
   }
   to {
-    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 25px #ff1493,
-      0 0 35px #ff69b4, 0 0 45px #db7093;
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 25px #ba55d3,
+      0 0 35px #9370db, 0 0 45px #4169e1;
   }
 }
 
@@ -38,11 +38,12 @@
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.9),
-    rgba(255, 192, 203, 0.4)
+    rgba(221, 160, 221, 0.3),
+    rgba(173, 216, 230, 0.2)
   );
   padding: 30px;
   border-radius: 20px;
-  border: 2px solid #ff69b4;
+  border: 2px solid #ba55d3;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   text-align: center;
   max-width: 600px;
@@ -51,20 +52,20 @@
 
 .chrono-details p {
   font-size: 1.3em;
-  color: #db7093;
+  color: #8b4a9c;
   margin: 15px 0;
   text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .chrono-details p:first-child {
   font-size: 1.5em;
-  color: #ff1493;
+  color: #9370db;
   font-weight: bold;
 }
 
 .chrono-details p:nth-child(2) {
   font-style: italic;
-  color: #ff69b4;
+  color: #4169e1;
 }
 
 .chrono-stats {
@@ -78,8 +79,8 @@
 .stat-item {
   background: linear-gradient(
     135deg,
-    rgba(255, 105, 180, 0.8),
-    rgba(255, 20, 147, 0.6)
+    rgba(186, 85, 211, 0.8),
+    rgba(65, 105, 225, 0.6)
   );
   padding: 20px;
   border-radius: 15px;
@@ -93,7 +94,7 @@
 
 .stat-item:hover {
   transform: translateY(-5px) scale(1.05);
-  box-shadow: 0 8px 16px rgba(255, 105, 180, 0.4);
+  box-shadow: 0 8px 16px rgba(147, 112, 219, 0.4);
 }
 
 .stat-number {
