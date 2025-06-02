@@ -1,0 +1,101 @@
+.App {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centers content */
+  text-align: center;
+  font-family: "Dancing Script", cursive;
+  background-color: #fff0f5;
+  padding: 40px;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+h1 {
+  color: #ff69b4;
+  font-size: 2.5em;
+  margin-bottom: 30px;
+  text-shadow: 1px 1px 2px #fff;
+}
+
+.counter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.counter p {
+  margin: 10px 15px;
+  font-size: 1.5em;
+  color: #ff1493;
+  text-shadow: 1px 1px 2px #fff;
+}
+
+.images-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 30px 0;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.images-grid img {
+  width: 200px;
+  height: 200px;
+  margin: 10px;
+  border-radius: 10px;
+  border: 2px solid #ff69b4;
+  object-fit: cover;
+}
+
+.sentence {
+  margin-top: 30px;
+  font-size: 1.5em;
+  color: #db7093;
+  text-shadow: 1px 1px 2px #fff;
+  max-width: 800px;
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2em;
+  }
+
+  .counter p {
+    font-size: 1.2em;
+    margin: 10px;
+  }
+
+  .images-grid img {
+    width: 150px;
+    height: 150px;
+  }
+
+  .sentence {
+    font-size: 1.2em;
+    margin: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.5em;
+  }
+
+  .counter p {
+    font-size: 1em;
+    margin: 5px;
+  }
+
+  .images-grid img {
+    width: 100px;
+    height: 100px;
+  }
+
+  .sentence {
+    font-size: 1em;
+    margin: 15px;
+  }
+}
