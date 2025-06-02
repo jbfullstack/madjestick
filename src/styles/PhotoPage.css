@@ -1,0 +1,317 @@
+/* src/styles/PhotoPage.css */
+.photo-page {
+  padding: 20px;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 80vh;
+}
+
+.photo-page h1 {
+  color: #ff69b4;
+  font-size: 2.5em;
+  margin-bottom: 40px;
+  text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+  text-align: center;
+  animation: photoGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes photoGlow {
+  from {
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 10px #ff69b4;
+  }
+  to {
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 20px #ff1493,
+      0 0 30px #ff69b4;
+  }
+}
+
+/* Photo Filters */
+.photo-filters {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 40px;
+  padding: 20px;
+}
+
+.filter-button {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(255, 192, 203, 0.3)
+  );
+  border: 2px solid #ff69b4;
+  color: #ff1493;
+  font-size: 1.1em;
+  font-family: "Dancing Script", cursive;
+  font-weight: 600;
+  padding: 12px 25px;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.filter-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.filter-button:hover::before {
+  left: 100%;
+}
+
+.filter-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(255, 105, 180, 0.3);
+  border-color: #ff1493;
+}
+
+.filter-button.active {
+  background: linear-gradient(135deg, #ff69b4, #ff1493);
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 6px 15px rgba(255, 105, 180, 0.4);
+}
+
+.filter-button.active:hover {
+  background: linear-gradient(135deg, #ff1493, #db7093);
+}
+
+/* Photos Container */
+.photos-container {
+  padding: 20px 0;
+}
+
+.photo-category {
+  margin-bottom: 50px;
+}
+
+.photo-category h2 {
+  color: #ff1493;
+  font-size: 1.8em;
+  margin-bottom: 25px;
+  text-align: center;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+  padding: 15px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.8),
+    rgba(255, 192, 203, 0.3)
+  );
+  border-radius: 15px;
+  border: 1px solid rgba(255, 105, 180, 0.3);
+}
+
+/* Images Grid */
+.images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 25px;
+  padding: 20px;
+}
+
+.photo-gallery {
+  width: 100%;
+  height: 250px;
+  border-radius: 15px;
+  border: 3px solid #ff69b4;
+  object-fit: cover;
+  transition: all 0.4s ease;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.photo-gallery::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 105, 180, 0.1),
+    rgba(255, 20, 147, 0.1)
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.photo-gallery:hover::before {
+  opacity: 1;
+}
+
+.photo-gallery:hover {
+  transform: scale(1.05) rotate(1deg);
+  box-shadow: 0 10px 25px rgba(255, 105, 180, 0.4);
+  border-color: #ff1493;
+}
+
+.photo-gallery:nth-child(2n):hover {
+  transform: scale(1.05) rotate(-1deg);
+}
+
+.photo-gallery:nth-child(3n):hover {
+  transform: scale(1.08) rotate(2deg);
+}
+
+.photo-gallery:nth-child(4n):hover {
+  transform: scale(1.08) rotate(-2deg);
+}
+
+/* Lightbox effect on click (you can enhance this with a modal later) */
+.photo-gallery:active {
+  transform: scale(0.98);
+}
+
+/* Masonry-like effect for varied heights */
+.images-grid .photo-gallery:nth-child(3n) {
+  height: 300px;
+}
+
+.images-grid .photo-gallery:nth-child(5n) {
+  height: 200px;
+}
+
+.images-grid .photo-gallery:nth-child(7n) {
+  height: 280px;
+}
+
+/* Loading animation */
+@keyframes photoLoad {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.photo-gallery {
+  animation: photoLoad 0.6s ease-out;
+}
+
+.photo-gallery:nth-child(2n) {
+  animation-delay: 0.1s;
+}
+
+.photo-gallery:nth-child(3n) {
+  animation-delay: 0.2s;
+}
+
+.photo-gallery:nth-child(4n) {
+  animation-delay: 0.3s;
+}
+
+/* Heart decoration for romantic touch */
+.photo-category::before {
+  content: "💕";
+  position: absolute;
+  top: -10px;
+  right: 20px;
+  font-size: 1.5em;
+  animation: heartFloat 3s ease-in-out infinite;
+}
+
+@keyframes heartFloat {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .photo-page {
+    padding: 15px;
+  }
+
+  .photo-page h1 {
+    font-size: 2em;
+  }
+
+  .photo-filters {
+    gap: 10px;
+    padding: 15px;
+  }
+
+  .filter-button {
+    font-size: 1em;
+    padding: 10px 20px;
+  }
+
+  .images-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 15px;
+  }
+
+  .photo-gallery {
+    height: 200px;
+  }
+
+  .images-grid .photo-gallery:nth-child(3n),
+  .images-grid .photo-gallery:nth-child(5n),
+  .images-grid .photo-gallery:nth-child(7n) {
+    height: 200px;
+  }
+
+  .photo-category h2 {
+    font-size: 1.5em;
+  }
+}
+
+@media (max-width: 480px) {
+  .photo-page h1 {
+    font-size: 1.5em;
+  }
+
+  .photo-filters {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .filter-button {
+    font-size: 0.9em;
+    padding: 8px 15px;
+    width: 200px;
+  }
+
+  .images-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    padding: 10px;
+  }
+
+  .photo-gallery {
+    height: 150px;
+  }
+
+  .photo-category h2 {
+    font-size: 1.3em;
+    padding: 10px;
+  }
+}

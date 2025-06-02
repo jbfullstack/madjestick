@@ -1,0 +1,175 @@
+/* src/styles/ChronoPage.css */
+.chrono-page {
+  padding: 20px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 80vh;
+  font-family: "Dancing Script", cursive;
+}
+
+.chrono-page h1 {
+  color: #ff69b4;
+  font-size: 3em;
+  margin-bottom: 40px;
+  text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+  animation: chronoGlow 4s ease-in-out infinite alternate;
+}
+
+@keyframes chronoGlow {
+  from {
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 15px #ff69b4;
+  }
+  to {
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 25px #ff1493,
+      0 0 35px #ff69b4, 0 0 45px #db7093;
+  }
+}
+
+.chrono-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  margin: 40px 0;
+}
+
+.chrono-details {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(255, 192, 203, 0.4)
+  );
+  padding: 30px;
+  border-radius: 20px;
+  border: 2px solid #ff69b4;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+}
+
+.chrono-details p {
+  font-size: 1.3em;
+  color: #db7093;
+  margin: 15px 0;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.chrono-details p:first-child {
+  font-size: 1.5em;
+  color: #ff1493;
+  font-weight: bold;
+}
+
+.chrono-details p:nth-child(2) {
+  font-style: italic;
+  color: #ff69b4;
+}
+
+.chrono-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.stat-item {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 105, 180, 0.8),
+    rgba(255, 20, 147, 0.6)
+  );
+  padding: 20px;
+  border-radius: 15px;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  min-width: 120px;
+  text-align: center;
+}
+
+.stat-item:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 8px 16px rgba(255, 105, 180, 0.4);
+}
+
+.stat-number {
+  display: block;
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 1.1em;
+  opacity: 0.9;
+}
+
+/* Remove permanent animations - only on hover */
+.chrono-page .counter p:hover {
+  animation: none; /* Override any inherited animations */
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .chrono-page h1 {
+    font-size: 2.5em;
+  }
+
+  .chrono-display {
+    gap: 30px;
+  }
+
+  .chrono-details {
+    padding: 25px;
+    margin: 20px;
+  }
+
+  .chrono-details p {
+    font-size: 1.1em;
+  }
+
+  .chrono-details p:first-child {
+    font-size: 1.3em;
+  }
+
+  .chrono-stats {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .stat-item {
+    width: 100%;
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chrono-page h1 {
+    font-size: 2em;
+  }
+
+  .chrono-details {
+    padding: 20px;
+    margin: 15px;
+  }
+
+  .chrono-details p {
+    font-size: 1em;
+  }
+
+  .chrono-details p:first-child {
+    font-size: 1.2em;
+  }
+
+  .stat-number {
+    font-size: 1.5em;
+  }
+
+  .stat-label {
+    font-size: 1em;
+  }
+}
