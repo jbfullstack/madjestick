@@ -1,0 +1,20 @@
+{
+  "songs": [
+    {
+      "id": 1,
+      "title": "Première compo guitare",
+      "artist": "Djé",
+      "fileName": "first_guitare_compo.mp3",
+      "type": "guitar",
+      "lyrics": "Pas de parole 🎤"
+    },
+    {
+      "id": 2,
+      "title": "Mes doigts entre leurs tripes",
+      "artist": "Djé",
+      "fileName": null,
+      "type": "text",
+      "lyrics": "Ils ton dit de venir\nPetite soirée sympa en devenir\nTu les connais, tu ne t'es pas méfié, \nVous alliez juste festoyer \nEn plus ils sont pompiers,\nQu'est ce qu'il pourrait mal ce passer?\n\nLe réveil est sans souvenir\nPremier fois de ta vie oû ta mémoire est partir fuir\nOn t'expliques que tas était drogué \nCertains voudrais te voir le chapeau porter\nComme si c'est toi qui tavais agressé \nLe tout en bande organisé \n\nOn leur souhaite aucun avenir\nMême pas, on leur prédit vraiment le pire\n34 et 37 ans\nLa crasse le pire de ce qui ce fait de vivant\nPrémédité, les preuve sont là \nLes audio des échanges téléphoniques ne trompes pas\n\nMes doigts qui traînent entre leurs tripes\nAmbiance sonore à base de mauvais soupirs\nEt ca tristement , suplie \"pardon\"\nJ'écoute pas, jme concentre sur comment corriger cet affront \n\nJe trouve l'équilibre dans votre douleur\nMalsainement j'aime la couleur de vos plies en sueurs \nEt ca tombe au sol régulier comme le temps qui passe\nLui qui se dilate, pendant que tu trépasse\nJ'aime le travail bien fait\nLa fin du supplice se fondra dans la rosé...\n\n..Du matin\n2 de moins, c'est bien\nJ'aurais jamais cru vouloir le faire\nÊtre satisfait d'avoir calmé 2 corps à terres"
+    }
+  ]
+}

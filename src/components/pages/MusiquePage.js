@@ -1,127 +1,78 @@
 // src/components/pages/MusiquePage.js
 import React, { useState, useRef, useEffect } from "react";
 import "../../styles/MusiquePage.css";
-
-// Import your audio files directly
-import Song1 from "../../sounds/first_guitare_compo.mp3";
-// import Song2 from "../../sounds/votre-deuxieme-fichier.wav";
+import {
+  loadMusicLibrary,
+  getTypeEmoji,
+  hasAudio,
+  MUSIC_TYPES,
+} from "../../utils/musicLoader";
 
 const MusiquePage = () => {
   const [currentSong, setCurrentSong] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [musicLibrary, setMusicLibrary] = useState([]);
   const audioRef = useRef(null);
 
-  // Your actual music library with imported files
-  const musicLibrary = [
-    {
-      id: 1,
-      title: "Première compo guitare",
-      artist: "Djé",
-      file: Song1, // Using imported file
-      type: "audio", // Has music
-      lyrics: `Pas de parole 🎤`,
-    },
-    {
-      id: 2,
-      title: "Mes doigts entre leurs tripes",
-      artist: "Djé",
-      file: null, // No music file - text only
-      type: "text", // Text only
-      lyrics: `Ils ton dit de venir
-Petite soirée sympa en devenir
-Tu les connais, tu ne t'es pas méfié, 
-Vous alliez juste festoyer 
-En plus ils sont pompiers,
-Qu'est ce qu'il pourrait mal ce passer?
+  // Charger the music library au montage du composant
+  useEffect(() => {
+    const library = loadMusicLibrary();
+    setMusicLibrary(library);
+  }, []);
 
-Le réveil est sans souvenir
-Premier fois de ta vie oû ta mémoire est partir fuir
-On t'expliques que tas était drogué 
-Certains voudrais te voir le chapeau porter
-Comme si c'est toi qui tavais agressé 
-Le tout en bande organisé 
+  const selectedSong = musicLibrary[currentSong] || {};
 
-On leur souhaite aucun avenir
-Même pas, on leur prédit vraiment le pire
-34 et 37 ans
-La crasse le pire de ce qui ce fait de vivant
-Prémédité, les preuve sont là 
-Les audio des échanges téléphoniques ne trompes pas
-
-Mes doigts qui traînent entre leurs tripes
-Ambiance sonore à base de mauvais soupirs
-Et ca tristement , suplie "pardon"
-J'écoute pas, jme concentre sur comment corriger cet affront 
-
-Je trouve l'équilibre dans votre douleur
-Malsainement j'aime la couleur de vos plies en sueurs 
-Et ca tombe au sol régulier comme le temps qui passe
-Lui qui se dilate, pendant que tu trépasse
-J'aime le travail bien fait
-La fin du supplice se fondra dans la rosé...
-
-..Du matin
-2 de moins, c'est bien
-J'aurais jamais cru vouloir le faire
-Être satisfait d'avoir calmé 2 corps à terres`,
-    },
-    // Ajoutez d'autres textes ou chansons :
-    // {
-    //   id: 3,
-    //   title: "Autre texte",
-    //   artist: "Djé",
-    //   file: null,
-    //   type: "text",
-    //   lyrics: `Vos paroles ici...`
-    // },
-  ];
-
-  const selectedSong = musicLibrary[currentSong];
-
+  // Effect pour gérer l'audio
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || !hasAudio(selectedSong.type)) return;
 
-    const updateTime = () => setCurrentTime(audio.currentTime);
-    const updateDuration = () => setDuration(audio.duration);
+    const updateTime = () => setCurrentTime(audio.currentTime || 0);
+    const updateDuration = () => setDuration(audio.duration || 0);
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+    };
 
     audio.addEventListener("timeupdate", updateTime);
     audio.addEventListener("loadedmetadata", updateDuration);
-    audio.addEventListener("ended", () => {
-      setIsPlaying(false);
-      setCurrentTime(0);
-    });
+    audio.addEventListener("ended", handleEnded);
 
     return () => {
       audio.removeEventListener("timeupdate", updateTime);
       audio.removeEventListener("loadedmetadata", updateDuration);
+      audio.removeEventListener("ended", handleEnded);
     };
-  }, [currentSong]);
+  }, [currentSong, selectedSong.type]);
 
   const playPauseHandler = () => {
     const audio = audioRef.current;
+    if (!audio || !hasAudio(selectedSong.type)) return;
+
     if (isPlaying) {
       audio.pause();
     } else {
       audio.play().catch((error) => {
         console.error("Error playing audio:", error);
-        alert(`Impossible de lire le fichier audio: ${selectedSong.file}`);
+        alert(`Impossible de lire le fichier audio: ${selectedSong.title}`);
       });
     }
     setIsPlaying(!isPlaying);
   };
 
   const selectSong = (index) => {
-    if (currentSong !== index) {
+    if (currentSong !== index && index >= 0 && index < musicLibrary.length) {
       const wasPlaying = isPlaying;
       setCurrentSong(index);
       setIsPlaying(false);
       setCurrentTime(0);
+      setDuration(0);
 
-      // Auto-play the new song if the previous one was playing
-      if (wasPlaying) {
+      // Auto-play the new song if the previous one was playing and new song has audio
+      const newSong = musicLibrary[index];
+      if (wasPlaying && hasAudio(newSong.type)) {
         setTimeout(() => {
           setIsPlaying(true);
         }, 100);
@@ -130,7 +81,7 @@ J'aurais jamais cru vouloir le faire
   };
 
   const formatTime = (time) => {
-    if (isNaN(time)) return "0:00";
+    if (isNaN(time) || time === 0) return "0:00";
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
@@ -139,7 +90,7 @@ J'aurais jamais cru vouloir le faire
   const handleProgressClick = (e) => {
     const audio = audioRef.current;
     // Only handle progress click if there's an audio file
-    if (!audio || !selectedSong.file || selectedSong.type === "text") return;
+    if (!audio || !selectedSong.file || !hasAudio(selectedSong.type)) return;
 
     const progressBar = e.currentTarget;
     const clickX = e.nativeEvent.offsetX;
@@ -149,13 +100,25 @@ J'aurais jamais cru vouloir le faire
     setCurrentTime(newTime);
   };
 
+  // Afficher un message de chargement si la librairie n'est pas encore chargée
+  if (musicLibrary.length === 0) {
+    return (
+      <div className="musique-page">
+        <h1>Musiques et Textes</h1>
+        <div className="music-player">
+          <p>Chargement de la librairie musicale...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="musique-page">
-      <h1>Musique de Djé</h1>
+      <h1>Musiques et Textes</h1>
 
       <div className="music-player">
         <div className="playlist">
-          <h3>Playlist</h3>
+          <h3>Playlist ({musicLibrary.length} éléments)</h3>
           {musicLibrary.map((song, index) => (
             <div
               key={song.id}
@@ -165,13 +128,14 @@ J'aurais jamais cru vouloir le faire
               <div className="song-info">
                 <div className="song-title">
                   {song.title}
-                  {song.type === "text" && (
-                    <span className="text-only-badge"> 📝</span>
-                  )}
+                  <span className="text-only-badge">
+                    {" "}
+                    {getTypeEmoji(song.type)}
+                  </span>
                 </div>
                 <div className="song-artist">by {song.artist}</div>
               </div>
-              {currentSong === index && isPlaying && (
+              {currentSong === index && isPlaying && hasAudio(song.type) && (
                 <div className="playing-indicator">♪</div>
               )}
             </div>
@@ -180,12 +144,14 @@ J'aurais jamais cru vouloir le faire
 
         <div className="player-controls">
           <div className="now-playing">
-            <h3>{selectedSong.title}</h3>
+            <h3>
+              {selectedSong.title} {getTypeEmoji(selectedSong.type)}
+            </h3>
             <p>by {selectedSong.artist}</p>
           </div>
 
           {/* Progress bar - only show if current song has audio */}
-          {selectedSong.type === "audio" && (
+          {hasAudio(selectedSong.type) && (
             <div className="progress-container">
               <span className="time">{formatTime(currentTime)}</span>
               <div className="progress-bar" onClick={handleProgressClick}>
@@ -201,7 +167,7 @@ J'aurais jamais cru vouloir le faire
           )}
 
           {/* Show static progress bar for text-only */}
-          {selectedSong.type === "text" && (
+          {selectedSong.type === MUSIC_TYPES.TEXT && (
             <div className="progress-container">
               <span className="time">--:--</span>
               <div className="progress-bar-disabled">
@@ -212,7 +178,7 @@ J'aurais jamais cru vouloir le faire
           )}
 
           {/* Only show controls if current song has audio */}
-          {selectedSong.type === "audio" && (
+          {hasAudio(selectedSong.type) && (
             <div className="controls">
               <button
                 className="control-btn"
@@ -247,7 +213,7 @@ J'aurais jamais cru vouloir le faire
           )}
 
           {/* Show message for text-only entries */}
-          {selectedSong.type === "text" && (
+          {selectedSong.type === MUSIC_TYPES.TEXT && (
             <div className="text-only-message">
               <p>📝 Texte seulement - Pas de musique disponible</p>
               <div className="text-controls">
@@ -282,7 +248,7 @@ J'aurais jamais cru vouloir le faire
           )}
 
           {/* Audio element only for songs with files */}
-          {selectedSong.file && (
+          {selectedSong.file && hasAudio(selectedSong.type) && (
             <audio
               ref={audioRef}
               src={selectedSong.file}
@@ -298,9 +264,11 @@ J'aurais jamais cru vouloir le faire
         <div className="lyrics">
           <h3>Paroles</h3>
           <div className="lyrics-text">
-            {selectedSong.lyrics.split("\n").map((line, index) => (
-              <p key={index}>{line}</p>
-            ))}
+            {(selectedSong.lyrics || "Pas de paroles disponibles")
+              .split("\n")
+              .map((line, index) => (
+                <p key={index}>{line}</p>
+              ))}
           </div>
         </div>
       </div>
