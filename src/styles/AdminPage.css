@@ -8,13 +8,44 @@
   font-family: "Dancing Script", cursive;
 }
 
+.admin-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
 .admin-page h1 {
   color: #9370db;
   font-size: 2.5em;
-  margin-bottom: 40px;
+  margin: 0;
   text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
-  text-align: center;
   animation: adminGlow 3s ease-in-out infinite alternate;
+}
+
+.logout-button {
+  background: linear-gradient(135deg, #ff6b6b, #ff4757);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 15px;
+  cursor: pointer;
+  font-family: "Dancing Script", cursive;
+  font-weight: 600;
+  font-size: 1em;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logout-button:hover {
+  background: linear-gradient(135deg, #ff4757, #ff3742);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(255, 75, 87, 0.4);
 }
 
 @keyframes adminGlow {
@@ -627,8 +658,20 @@
     padding: 15px;
   }
 
+  .admin-header-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 15px;
+  }
+
   .admin-page h1 {
     font-size: 2em;
+  }
+
+  .logout-button {
+    padding: 10px 16px;
+    font-size: 0.9em;
   }
 
   .admin-content {
@@ -698,6 +741,11 @@
 @media (max-width: 480px) {
   .admin-page h1 {
     font-size: 1.5em;
+  }
+
+  .logout-button {
+    padding: 8px 12px;
+    font-size: 0.8em;
   }
 
   .admin-tabs {

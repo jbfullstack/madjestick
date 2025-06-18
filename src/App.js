@@ -1,5 +1,7 @@
 // src/App.js
 import React, { useState } from "react";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Navigation from "./components/common/Navigation";
 import HomePage from "./components/pages/HomePage";
 import ChronoPage from "./components/pages/ChronoPage";
@@ -22,17 +24,23 @@ function App() {
       case "musiques":
         return <MusiquePage />;
       case "admin":
-        return <AdminPage />;
+        return (
+          <ProtectedRoute>
+            <AdminPage />
+          </ProtectedRoute>
+        );
       default:
         return <HomePage />;
     }
   };
 
   return (
-    <div className="App">
-      <Navigation currentPage={currentPage} setCurrentPage={setCurrentPage} />
-      {renderPage()}
-    </div>
+    <AuthProvider>
+      <div className="App">
+        <Navigation currentPage={currentPage} setCurrentPage={setCurrentPage} />
+        {renderPage()}
+      </div>
+    </AuthProvider>
   );
 }
 

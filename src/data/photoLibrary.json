@@ -1,47 +1,47 @@
 [
   {
     "id": 1,
-    "title": "Première photo ensemble",
-    "description": "Notre première sortie officielle",
-    "category": "nous",
+    "title": "Madeleine au chocolat",
+    "description": "La plus jolie jeune demoiselle",
+    "category": "portraits",
     "file": "photo1.jpg",
     "date": "2025-04-15",
-    "tags": ["couple", "première fois", "restaurant"]
+    "tags": ["madeleine", "portrait"]
   },
   {
     "id": 2,
-    "title": "Moment romantique",
-    "description": "Un moment tendre au coucher du soleil",
-    "category": "moments",
-    "file": "photo2.jpg",
-    "date": "2025-04-20",
-    "tags": ["romantique", "coucher de soleil", "tendre"]
+   "title": "Djé hair cut",
+    "description": "Unephoto pour montrer la nouvelle coupe de cheveux",
+    "category": "portraits",
+    "file": "photo3.jpg",
+    "date": "2025-04-25",
+    "tags": ["djé", "portrait"]
   },
   {
     "id": 3,
-    "title": "Rires complices",
-    "description": "Fou rire inoubliable",
-    "category": "moments",
-    "file": "photo3.jpg",
-    "date": "2025-04-25",
-    "tags": ["rire", "complicité", "joie"]
-  },
-  {
-    "id": 4,
-    "title": "Photo de groupe",
-    "description": "Avec nos amis proches",
+    "title": "Tigroooo",
+    "description": "La tasse tigroo",
     "category": "autres",
     "file": "photo4.jpg",
     "date": "2025-04-30",
-    "tags": ["amis", "groupe", "fête"]
+    "tags": ["objet"]
+  },
+  {
+    "id": 4,
+    "title": "Djécéroce bigleux",
+    "description": "Un djécéroce dans son habitat naturel",
+    "category": "portraits",
+    "file": "photo4.jpg",
+    "date": "2025-04-30",
+    "tags": ["animaux", "djé"]
   },
   {
     "id": 5,
-    "title": "Instant câlin",
-    "description": "Moment de tendresse pure",
-    "category": "nous",
-    "file": "photo5.jpg",
-    "date": "2025-05-01",
-    "tags": ["câlin", "tendresse", "amour"]
+    "title": "Coqueliquelots",
+    "description": "Des jolies coquelicots",
+    "category": "nature",
+    "file": "photo2.jpg",
+    "date": "2025-04-20",
+    "tags": ["nature"]
   }
 ]

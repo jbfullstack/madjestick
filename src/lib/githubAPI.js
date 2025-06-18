@@ -8,23 +8,88 @@ const safeBase64Decode = (encodedContent) => {
   try {
     // Nettoyer le contenu (supprimer les retours à la ligne et espaces)
     const cleanContent = encodedContent.replace(/\s/g, '');
-    // Décoder avec support UTF-8 complet
+    
+    // Décoder base64 puis convertir en UTF-8 proprement
     const decoded = atob(cleanContent);
-    return decodeURIComponent(escape(decoded));
+    
+    // Convertir les bytes en UTF-8 correct
+    const utf8Decoded = decodeURIComponent(escape(decoded));
+    
+    return utf8Decoded;
   } catch (error) {
     console.error('Erreur décodage base64:', error);
-    throw new Error('Impossible de décoder le contenu du fichier');
+    
+    // Fallback : décodage simple si UTF-8 échoue
+    try {
+      const cleanContent = encodedContent.replace(/\s/g, '');
+      return atob(cleanContent);
+    } catch (fallbackError) {
+      console.error('Erreur décodage fallback:', fallbackError);
+      throw new Error('Impossible de décoder le contenu du fichier');
+    }
   }
 };
 
 // Helper function pour encoder base64 de manière sécurisée avec UTF-8
 const safeBase64Encode = (content) => {
   try {
-    return btoa(unescape(encodeURIComponent(content)));
+    // Encoder en UTF-8 puis en base64
+    const utf8Encoded = unescape(encodeURIComponent(content));
+    return btoa(utf8Encoded);
   } catch (error) {
     console.error('Erreur encodage base64:', error);
     throw new Error('Impossible d\'encoder le contenu du fichier');
   }
+};
+
+// Helper function pour nettoyer les caractères mal encodés
+const cleanEncodingIssues = (text) => {
+  if (typeof text !== 'string') return text;
+  
+  return text
+    // Corrections spécifiques pour les erreurs d'encodage courantes
+    .replace(/ÃÂ©/g, 'é')
+    .replace(/ÃÂ§/g, 'ç') 
+    .replace(/ÃÂª/g, 'ê')
+    .replace(/ÃÂ¨/g, 'è')
+    .replace(/ÃÂ /g, 'à')
+    .replace(/ÃÂ´/g, 'ô')
+    .replace(/ÃÂ¹/g, 'ù')
+    .replace(/ÃÂ»/g, 'û')
+    .replace(/ÃÂ®/g, 'î')
+    .replace(/ÃÂ¯/g, 'ï')
+    .replace(/ÃÂ¢/g, 'â')
+    .replace(/ÃÂ«/g, 'ë')
+    .replace(/ÃÂ¶/g, 'ö')
+    .replace(/ÃÂ¼/g, 'ü')
+    .replace(/ÃÂ/g, 'É')
+    .replace(/ÃÂ/g, 'È')
+    .replace(/ÃÂ/g, 'À')
+    .replace(/ÃÂ/g, 'Ç')
+    // Nettoyer les doubles espaces
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
+// Helper function pour nettoyer récursivement un objet
+const cleanObjectEncoding = (obj) => {
+  if (typeof obj === 'string') {
+    return cleanEncodingIssues(obj);
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => cleanObjectEncoding(item));
+  }
+  
+  if (obj && typeof obj === 'object') {
+    const cleaned = {};
+    for (const [key, value] of Object.entries(obj)) {
+      cleaned[key] = cleanObjectEncoding(value);
+    }
+    return cleaned;
+  }
+  
+  return obj;
 };
 
 export const githubAPI = {
@@ -133,7 +198,10 @@ export const githubAPI = {
       
       const fileData = await response.json();
       const content = safeBase64Decode(fileData.content);
-      return JSON.parse(content);
+      const parsedData = JSON.parse(content);
+      
+      // Nettoyer les problèmes d'encodage
+      return cleanObjectEncoding(parsedData);
     } catch (error) {
       console.error('Erreur récupération citations:', error);
       throw error;
@@ -261,7 +329,10 @@ export const githubAPI = {
       
       const fileData = await response.json();
       const content = safeBase64Decode(fileData.content);
-      return JSON.parse(content);
+      const parsedData = JSON.parse(content);
+      
+      // Nettoyer les problèmes d'encodage
+      return cleanObjectEncoding(parsedData);
     } catch (error) {
       console.error('Erreur récupération musique:', error);
       throw error;
