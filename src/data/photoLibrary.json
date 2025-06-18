@@ -61,5 +61,19 @@
       "nature"
     ],
     "fullPath": "/images/photo5.jpg"
+  },
+  {
+    "id": 1750265007778,
+    "title": "Bocaux à émotions ",
+    "description": "La douce attention de madeleine pour mon retour de mongolie",
+    "category": "autres",
+    "file": "20250618_084555_1750265007971_980sty.jpg",
+    "date": "2025-06-18",
+    "tags": [
+      "madleiness",
+      "objet"
+    ],
+    "isDateUnknown": false,
+    "fullPath": "/images/20250618_084555_1750265007971_980sty.jpg"
   }
 ]
