@@ -11,6 +11,7 @@ import {
   addPhotoCategory,
   removePhotoCategory
 } from "../../utils/photoLoader";
+import { githubAPI } from "../../lib/githubAPI";
 
 const PhotoManager = () => {
   const [photos, setPhotos] = useState([]);
@@ -25,6 +26,10 @@ const PhotoManager = () => {
   const [newCategoryEmoji, setNewCategoryEmoji] = useState("📷");
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [newTag, setNewTag] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const [formData, setFormData] = useState({
     id: 0,
@@ -41,11 +46,30 @@ const PhotoManager = () => {
     loadData();
   }, []);
 
-  const loadData = () => {
-    const photoData = loadPhotoLibrary();
-    setPhotos(photoData);
-    setAllTags(getAllTags());
-    setAllCategories(getAllPhotoCategories());
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Charger les photos depuis GitHub
+      const photoData = await githubAPI.getPhotos();
+      setPhotos(Array.isArray(photoData) ? photoData : []);
+      
+      // Charger les autres données localement (tags, catégories, etc.)
+      setAllTags(getAllTags());
+      setAllCategories(getAllPhotoCategories());
+    } catch (err) {
+      setError('Erreur lors du chargement des photos: ' + err.message);
+      console.error('Error loading photos:', err);
+      
+      // Fallback vers les données locales
+      const photoData = loadPhotoLibrary();
+      setPhotos(photoData);
+      setAllTags(getAllTags());
+      setAllCategories(getAllPhotoCategories());
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resetForm = () => {
@@ -62,6 +86,8 @@ const PhotoManager = () => {
     setSelectedPhoto(null);
     setIsEditing(false);
     setShowTagDropdown(false);
+    setSelectedFile(null);
+    setUploadProgress("");
   };
 
   const handleEdit = (photo) => {
@@ -77,6 +103,8 @@ const PhotoManager = () => {
     });
     setSelectedPhoto(photo);
     setIsEditing(true);
+    setSelectedFile(null);
+    setUploadProgress("");
   };
 
   const handleInputChange = (e) => {
@@ -90,10 +118,22 @@ const PhotoManager = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData(prev => ({
-        ...prev,
-        file: file.name
-      }));
+      // Vérifier le type de fichier
+      if (!file.type.startsWith('image/')) {
+        alert('Veuillez sélectionner un fichier image valide');
+        e.target.value = '';
+        return;
+      }
+
+      // Vérifier la taille (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Le fichier est trop volumineux (max 5MB)');
+        e.target.value = '';
+        return;
+      }
+
+      setSelectedFile(file);
+      setUploadProgress(`Image sélectionnée: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
     }
   };
 
@@ -138,34 +178,104 @@ const PhotoManager = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Generate ID for new photos
-    if (!formData.id) {
-      const newId = Date.now();
-      setFormData(prev => ({ ...prev, id: newId }));
+    try {
+      setLoading(true);
+      setError(null);
+      setUploadProgress("Préparation...");
+
+      // Generate ID for new photos
+      let finalData = { ...formData };
+      if (!finalData.id) {
+        finalData.id = Date.now();
+      }
+
+      // Handle unknown date
+      finalData.date = formData.isDateUnknown ? "unknown" : formData.date;
+
+      // Upload de l'image si nécessaire
+      if (selectedFile) {
+        setUploadProgress("Upload de l'image...");
+        try {
+          const uploadResult = await githubAPI.uploadFile(selectedFile, 'public/images');
+          finalData.file = uploadResult.fileName;
+          setUploadProgress("Image uploadée avec succès !");
+        } catch (uploadErr) {
+          throw new Error(`Erreur upload image: ${uploadErr.message}`);
+        }
+      } else if (!isEditing && !finalData.file) {
+        throw new Error('Une image est requise');
+      }
+
+      // Get current photos from GitHub
+      setUploadProgress("Mise à jour de la bibliothèque...");
+      const currentPhotos = await githubAPI.getPhotos();
+      
+      let updatedPhotos;
+      if (isEditing) {
+        updatedPhotos = currentPhotos.map(photo => 
+          photo.id === finalData.id ? finalData : photo
+        );
+      } else {
+        updatedPhotos = [...currentPhotos, finalData];
+      }
+
+      // Save to GitHub
+      setUploadProgress("Sauvegarde sur GitHub...");
+      await githubAPI.updatePhotosFile(updatedPhotos);
+
+      setUploadProgress("Terminé !");
+      alert(`Photo "${finalData.title}" ${isEditing ? 'modifiée' : 'ajoutée'} avec succès!`);
+
+      resetForm();
+      await loadData();
+    } catch (err) {
+      setError('Erreur lors de la sauvegarde: ' + err.message);
+      console.error('Error saving photo:', err);
+      
+      // Note: Pas de fallback localStorage pour les photos car l'image ne serait pas accessible
+      alert('Erreur lors de la sauvegarde. Vérifiez votre connexion et réessayez.');
+    } finally {
+      setLoading(false);
+      setUploadProgress("");
     }
-
-    // Handle unknown date
-    const finalDate = formData.isDateUnknown ? "unknown" : formData.date;
-    const dataToSave = { ...formData, date: finalDate };
-
-    // In a real app, you would save to backend/localStorage
-    console.log("Photo data to save:", dataToSave);
-    alert(`Photo "${formData.title}" ${isEditing ? 'updated' : 'created'} successfully!`);
-    
-    resetForm();
-    loadData();
   };
 
-  const handleDelete = (photoId) => {
+  const handleDelete = async (photoId) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cette photo ?")) {
-      // In a real app, you would delete from backend/localStorage
-      console.log("Delete photo:", photoId);
-      alert("Photo supprimée!");
-      resetForm();
-      loadData();
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const currentPhotos = await githubAPI.getPhotos();
+        const photoToDelete = currentPhotos.find(photo => photo.id === photoId);
+        
+        // Supprimer le fichier image si il existe
+        if (photoToDelete && photoToDelete.file) {
+          try {
+            await githubAPI.deleteFile(`public/images/${photoToDelete.file}`);
+            console.log(`Fichier image ${photoToDelete.file} supprimé`);
+          } catch (deleteFileErr) {
+            console.warn(`Erreur suppression fichier image: ${deleteFileErr.message}`);
+            // On continue même si la suppression du fichier échoue
+          }
+        }
+        
+        const updatedPhotos = currentPhotos.filter(photo => photo.id !== photoId);
+        
+        await githubAPI.updatePhotosFile(updatedPhotos);
+        
+        alert("Photo supprimée avec succès!");
+        resetForm();
+        await loadData();
+      } catch (err) {
+        setError('Erreur lors de la suppression: ' + err.message);
+        console.error('Error deleting photo:', err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -186,10 +296,29 @@ const PhotoManager = () => {
     <div className="manager-container">
       <div className="manager-header">
         <h2>Gestion des Photos</h2>
-        <button className="btn-primary" onClick={resetForm}>
+        <button className="btn-primary" onClick={resetForm} disabled={loading}>
           📸 Nouvelle Photo
         </button>
       </div>
+
+      {error && (
+        <div className="message error">
+          {error}
+        </div>
+      )}
+
+      {loading && (
+        <div className="loading">
+          Chargement...
+          {uploadProgress && <div className="upload-progress">{uploadProgress}</div>}
+        </div>
+      )}
+
+      {uploadProgress && !loading && (
+        <div className="message info">
+          {uploadProgress}
+        </div>
+      )}
 
       {/* Search and Filter */}
       <div className="manager-filters">
@@ -223,7 +352,7 @@ const PhotoManager = () => {
               <div key={photo.id} className="photo-item">
                 <div className="photo-preview">
                   <img 
-                    src={photo.fullPath} 
+                    src={photo.fullPath || `/images/${photo.file}`}
                     alt={photo.title}
                     onError={(e) => {
                       e.target.src = 'https://via.placeholder.com/150x150/9370db/ffffff?text=No+Image';
@@ -234,6 +363,7 @@ const PhotoManager = () => {
                       className="btn-edit"
                       onClick={() => handleEdit(photo)}
                       title="Modifier"
+                      disabled={loading}
                     >
                       ✏️
                     </button>
@@ -241,6 +371,7 @@ const PhotoManager = () => {
                       className="btn-delete"
                       onClick={() => handleDelete(photo.id)}
                       title="Supprimer"
+                      disabled={loading}
                     >
                       🗑️
                     </button>
@@ -280,6 +411,7 @@ const PhotoManager = () => {
                 value={formData.title}
                 onChange={handleInputChange}
                 required
+                disabled={loading}
                 placeholder="Titre de la photo"
               />
             </div>
@@ -292,6 +424,7 @@ const PhotoManager = () => {
                 onChange={handleInputChange}
                 placeholder="Description de la photo"
                 rows="3"
+                disabled={loading}
               />
             </div>
 
@@ -303,6 +436,7 @@ const PhotoManager = () => {
                   value={formData.category}
                   onChange={handleInputChange}
                   required
+                  disabled={loading}
                 >
                   {currentCategories.map(category => (
                     <option key={category.id} value={category.id}>
@@ -314,6 +448,7 @@ const PhotoManager = () => {
                   type="button"
                   className="btn-add-category"
                   onClick={() => setShowNewCategoryForm(!showNewCategoryForm)}
+                  disabled={loading}
                 >
                   ➕
                 </button>
@@ -326,6 +461,7 @@ const PhotoManager = () => {
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
                     placeholder="Nom de la nouvelle catégorie"
+                    disabled={loading}
                   />
                   <input
                     type="text"
@@ -334,11 +470,12 @@ const PhotoManager = () => {
                     placeholder="📷"
                     maxLength="2"
                     style={{ width: '60px' }}
+                    disabled={loading}
                   />
-                  <button type="button" onClick={handleAddNewCategory} className="btn-primary">
+                  <button type="button" onClick={handleAddNewCategory} className="btn-primary" disabled={loading}>
                     Ajouter
                   </button>
-                  <button type="button" onClick={() => setShowNewCategoryForm(false)} className="btn-secondary">
+                  <button type="button" onClick={() => setShowNewCategoryForm(false)} className="btn-secondary" disabled={loading}>
                     Annuler
                   </button>
                 </div>
@@ -352,10 +489,17 @@ const PhotoManager = () => {
                 accept="image/*"
                 onChange={handleFileChange}
                 required={!isEditing}
+                disabled={loading}
               />
-              {formData.file && (
-                <p className="file-info">Fichier: {formData.file}</p>
+              {formData.file && !selectedFile && (
+                <p className="file-info">Fichier actuel: {formData.file}</p>
               )}
+              {selectedFile && (
+                <p className="file-info">Nouvelle image: {selectedFile.name}</p>
+              )}
+              <small className="form-hint">
+                Formats supportés: JPG, PNG, GIF, WebP (max 5MB)
+              </small>
             </div>
 
             <div className="form-group">
@@ -365,6 +509,7 @@ const PhotoManager = () => {
                   name="isDateUnknown"
                   checked={formData.isDateUnknown}
                   onChange={handleInputChange}
+                  disabled={loading}
                 />
                 Date inconnue
               </label>
@@ -379,6 +524,7 @@ const PhotoManager = () => {
                   value={formData.date}
                   onChange={handleInputChange}
                   required
+                  disabled={loading}
                 />
               </div>
             )}
@@ -394,6 +540,7 @@ const PhotoManager = () => {
                         type="button"
                         onClick={() => handleTagToggle(tag)}
                         className="remove-tag"
+                        disabled={loading}
                       >
                         ✕
                       </button>
@@ -405,6 +552,7 @@ const PhotoManager = () => {
                   type="button"
                   className="btn-toggle-tags"
                   onClick={() => setShowTagDropdown(!showTagDropdown)}
+                  disabled={loading}
                 >
                   {showTagDropdown ? "Masquer les tags" : "Sélectionner des tags"}
                 </button>
@@ -418,6 +566,7 @@ const PhotoManager = () => {
                             type="checkbox"
                             checked={formData.tags.includes(tag)}
                             onChange={() => handleTagToggle(tag)}
+                            disabled={loading}
                           />
                           #{tag}
                         </label>
@@ -431,8 +580,9 @@ const PhotoManager = () => {
                         onChange={(e) => setNewTag(e.target.value)}
                         placeholder="Nouveau tag"
                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddNewTag())}
+                        disabled={loading}
                       />
-                      <button type="button" onClick={handleAddNewTag} className="btn-primary">
+                      <button type="button" onClick={handleAddNewTag} className="btn-primary" disabled={loading}>
                         Ajouter
                       </button>
                     </div>
@@ -442,10 +592,10 @@ const PhotoManager = () => {
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="btn-primary">
-                {isEditing ? "Mettre à jour" : "Créer"}
+              <button type="submit" className="btn-primary" disabled={loading}>
+                {loading ? 'Sauvegarde...' : (isEditing ? "Mettre à jour" : "Créer")}
               </button>
-              <button type="button" className="btn-secondary" onClick={resetForm}>
+              <button type="button" className="btn-secondary" onClick={resetForm} disabled={loading}>
                 Annuler
               </button>
             </div>

@@ -13,25 +13,35 @@ const useTypingEffect = () => {
 
   // Load citations on component mount
   useEffect(() => {
-    // Try to load from localStorage first, then fallback to JSON
-    const savedCitations = localStorage.getItem('citationsLibrary');
-    const allCitations = savedCitations ? JSON.parse(savedCitations) : [];
-    
-    const favoriteCitations = allCitations.filter(citation => citation.isFavorite);
-    const sentences = favoriteCitations.map(citation => 
-      `${citation.text} (${citation.date === "unknown" ? "date inconnue" : citation.date})`
-    );
-    
-    // Fallback to original sentences if no citations available
-    const fallbackSentences = [
-      "Tout est entendable si c'est bien argumenté (2025)",
-      "Vous laisser gagner une bataille pour pouvoir gagner la guerre (23 avril 2025)",
-      "La vie c'est aussi d'avancer, sinon ça serait chiant (29 avril 2025)",
-      "Même en Ehpad On n'est pas des yaourts ! (2025)",
-    ];
+    const loadCitations = () => {
+      try {
+        const favoriteCitations = getFavoriteCitations();
+        const sentences = favoriteCitations.map(citation => 
+          `${citation.text} (${citation.date === "unknown" ? "date inconnue" : citation.date})`
+        );
+        
+        if (sentences.length > 0) {
+          setCitations(sentences);
+        } else {
+          // Fallback si pas de citations favorites
+          setCitations(getFallbackSentences());
+        }
+      } catch (error) {
+        console.warn('Could not load citations, using fallback:', error);
+        setCitations(getFallbackSentences());
+      }
+    };
 
-    setCitations(sentences.length > 0 ? sentences : fallbackSentences);
+    loadCitations();
   }, []);
+
+  // Fallback sentences
+  const getFallbackSentences = () => [
+    "Tout est entendable si c'est bien argumenté (2025)",
+    "Vous laisser gagner une bataille pour pouvoir gagner la guerre (23 avril 2025)",
+    "La vie c'est aussi d'avancer, sinon ça serait chiant (29 avril 2025)",
+    "Même en Ehpad On n'est pas des yaourts ! (2025)",
+  ];
 
   useEffect(() => {
     if (citations.length > 0) {

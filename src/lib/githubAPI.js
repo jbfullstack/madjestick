@@ -42,30 +42,44 @@ const safeBase64Encode = (content) => {
   }
 };
 
+// Helper function pour encoder un fichier en base64
+const fileToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      // Enlever le préfixe "data:type/subtype;base64,"
+      const base64String = reader.result.split(',')[1];
+      resolve(base64String);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
 // Helper function pour nettoyer les caractères mal encodés
 const cleanEncodingIssues = (text) => {
   if (typeof text !== 'string') return text;
   
   return text
     // Corrections spécifiques pour les erreurs d'encodage courantes
-    .replace(/ÃÂ©/g, 'é')
-    .replace(/ÃÂ§/g, 'ç') 
-    .replace(/ÃÂª/g, 'ê')
-    .replace(/ÃÂ¨/g, 'è')
-    .replace(/ÃÂ /g, 'à')
-    .replace(/ÃÂ´/g, 'ô')
-    .replace(/ÃÂ¹/g, 'ù')
-    .replace(/ÃÂ»/g, 'û')
-    .replace(/ÃÂ®/g, 'î')
-    .replace(/ÃÂ¯/g, 'ï')
-    .replace(/ÃÂ¢/g, 'â')
-    .replace(/ÃÂ«/g, 'ë')
-    .replace(/ÃÂ¶/g, 'ö')
-    .replace(/ÃÂ¼/g, 'ü')
-    .replace(/ÃÂ/g, 'É')
-    .replace(/ÃÂ/g, 'È')
-    .replace(/ÃÂ/g, 'À')
-    .replace(/ÃÂ/g, 'Ç')
+    .replace(/ÃÂ©/g, 'é')
+    .replace(/ÃÂ§/g, 'ç') 
+    .replace(/ÃÂª/g, 'ê')
+    .replace(/ÃÂ¨/g, 'è')
+    .replace(/ÃÂ /g, 'à')
+    .replace(/ÃÂ´/g, 'ô')
+    .replace(/ÃÂ¹/g, 'ù')
+    .replace(/ÃÂ»/g, 'û')
+    .replace(/ÃÂ®/g, 'î')
+    .replace(/ÃÂ¯/g, 'ï')
+    .replace(/ÃÂ¢/g, 'â')
+    .replace(/ÃÂ«/g, 'ë')
+    .replace(/ÃÂ¶/g, 'ö')
+    .replace(/ÃÂ¼/g, 'ü')
+    .replace(/ÃÂ/g, 'É')
+    .replace(/ÃÂ/g, 'È')
+    .replace(/ÃÂ/g, 'À')
+    .replace(/ÃÂ/g, 'Ç')
     // Nettoyer les doubles espaces
     .replace(/\s+/g, ' ')
     .trim();
@@ -90,6 +104,16 @@ const cleanObjectEncoding = (obj) => {
   }
   
   return obj;
+};
+
+// Helper function pour générer un nom de fichier unique
+const generateUniqueFileName = (originalName) => {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2, 8);
+  const extension = originalName.split('.').pop();
+  const nameWithoutExtension = originalName.split('.').slice(0, -1).join('.');
+  
+  return `${nameWithoutExtension}_${timestamp}_${random}.${extension}`;
 };
 
 export const githubAPI = {
@@ -140,6 +164,122 @@ export const githubAPI = {
       throw error;
     }
   },
+
+  // Upload d'un fichier vers GitHub
+  async uploadFile(file, targetPath) {
+    try {
+      if (!file) {
+        throw new Error('Aucun fichier fourni');
+      }
+
+      // Convertir le fichier en base64
+      const base64Content = await fileToBase64(file);
+      
+      // Générer un nom de fichier unique pour éviter les conflits
+      const uniqueFileName = generateUniqueFileName(file.name);
+      const fullPath = `${targetPath}/${uniqueFileName}`;
+
+      // Vérifier si le fichier existe déjà
+      const checkResponse = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${fullPath}`, {
+        headers: {
+          'Authorization': `token ${GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github.v3+json',
+        }
+      });
+
+      let sha = null;
+      if (checkResponse.ok) {
+        const existingFile = await checkResponse.json();
+        sha = existingFile.sha;
+      }
+
+      // Upload du fichier
+      const uploadPayload = {
+        message: `Upload ${file.type.includes('image') ? 'image' : 'audio'}: ${uniqueFileName}`,
+        content: base64Content,
+      };
+
+      if (sha) {
+        uploadPayload.sha = sha;
+      }
+
+      const uploadResponse = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${fullPath}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(uploadPayload)
+      });
+
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json();
+        throw new Error(`Erreur upload: ${uploadResponse.status} - ${errorData.message || 'Erreur inconnue'}`);
+      }
+
+      const result = await uploadResponse.json();
+      console.log(`Fichier uploadé avec succès: ${uniqueFileName}`);
+      
+      return {
+        fileName: uniqueFileName,
+        originalName: file.name,
+        path: fullPath,
+        downloadUrl: result.content.download_url
+      };
+    } catch (error) {
+      console.error('Erreur upload fichier:', error);
+      throw error;
+    }
+  },
+
+  // Supprimer un fichier de GitHub
+  async deleteFile(filePath) {
+    try {
+      // Récupérer les infos du fichier pour obtenir le SHA
+      const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}`, {
+        headers: {
+          'Authorization': `token ${GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github.v3+json',
+        }
+      });
+
+      if (response.status === 404) {
+        console.log(`Fichier ${filePath} n'existe pas, suppression ignorée`);
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(`Erreur lors de la récupération du fichier: ${response.status}`);
+      }
+
+      const fileData = await response.json();
+
+      // Supprimer le fichier
+      const deleteResponse = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `token ${GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: `Delete file: ${filePath}`,
+          sha: fileData.sha,
+        })
+      });
+
+      if (!deleteResponse.ok) {
+        throw new Error(`Erreur lors de la suppression: ${deleteResponse.status}`);
+      }
+
+      console.log(`Fichier supprimé avec succès: ${filePath}`);
+    } catch (error) {
+      console.error('Erreur suppression fichier:', error);
+      throw error;
+    }
+  },
+
   // Mettre à jour le fichier citations sur GitHub
   async updateCitationsFile(citations) {
     try {

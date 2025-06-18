@@ -16,6 +16,8 @@ const MusicManager = () => {
   const [filterType, setFilterType] = useState("all");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const [formData, setFormData] = useState({
     id: 0,
@@ -74,6 +76,8 @@ const MusicManager = () => {
     });
     setSelectedItem(null);
     setIsEditing(false);
+    setSelectedFile(null);
+    setUploadProgress("");
   };
 
   const handleEdit = (item) => {
@@ -89,6 +93,8 @@ const MusicManager = () => {
     });
     setSelectedItem(item);
     setIsEditing(true);
+    setSelectedFile(null);
+    setUploadProgress("");
   };
 
   const handleInputChange = (e) => {
@@ -102,10 +108,22 @@ const MusicManager = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData(prev => ({
-        ...prev,
-        file: file.name
-      }));
+      // Vérifier le type de fichier
+      if (!file.type.startsWith('audio/')) {
+        alert('Veuillez sélectionner un fichier audio valide');
+        e.target.value = '';
+        return;
+      }
+
+      // Vérifier la taille (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('Le fichier est trop volumineux (max 10MB)');
+        e.target.value = '';
+        return;
+      }
+
+      setSelectedFile(file);
+      setUploadProgress(`Fichier sélectionné: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
     }
   };
 
@@ -115,6 +133,7 @@ const MusicManager = () => {
     try {
       setLoading(true);
       setError(null);
+      setUploadProgress("Préparation...");
 
       // Prepare data
       let finalData = { ...formData };
@@ -123,7 +142,22 @@ const MusicManager = () => {
       }
       finalData.date = formData.isDateUnknown ? "unknown" : formData.date;
 
+      // Upload du fichier audio si nécessaire
+      if (selectedFile && hasAudio(finalData.type)) {
+        setUploadProgress("Upload du fichier audio...");
+        try {
+          const uploadResult = await githubAPI.uploadFile(selectedFile, 'public/sounds');
+          finalData.file = uploadResult.fileName;
+          setUploadProgress("Fichier audio uploadé avec succès !");
+        } catch (uploadErr) {
+          throw new Error(`Erreur upload audio: ${uploadErr.message}`);
+        }
+      } else if (!isEditing && hasAudio(finalData.type) && !finalData.file) {
+        throw new Error('Un fichier audio est requis pour ce type de contenu');
+      }
+
       // Get current music from GitHub
+      setUploadProgress("Mise à jour de la bibliothèque...");
       const currentMusic = await githubAPI.getMusic();
       
       let updatedMusic;
@@ -136,11 +170,13 @@ const MusicManager = () => {
       }
 
       // Save to GitHub
+      setUploadProgress("Sauvegarde sur GitHub...");
       await githubAPI.updateMusicFile(updatedMusic);
       
       // Also save to localStorage as backup
       localStorage.setItem('musicLibrary', JSON.stringify(updatedMusic));
 
+      setUploadProgress("Terminé !");
       alert(`${finalData.type === MUSIC_TYPES.TEXT ? 'Texte' : 'Musique'} "${finalData.title}" ${isEditing ? 'modifié(e)' : 'ajouté(e)'} avec succès! Déploiement en cours...`);
 
       resetForm();
@@ -151,11 +187,17 @@ const MusicManager = () => {
       
       // Fallback to localStorage only
       try {
+        setUploadProgress("Sauvegarde locale de secours...");
         let finalData = { ...formData };
         if (!finalData.id) {
           finalData.id = Date.now();
         }
         finalData.date = formData.isDateUnknown ? "unknown" : formData.date;
+        
+        // Si on avait un fichier sélectionné, on garde le nom original comme fallback
+        if (selectedFile && hasAudio(finalData.type)) {
+          finalData.file = selectedFile.name;
+        }
 
         const localMusic = JSON.parse(localStorage.getItem('musicLibrary') || '[]');
         let updatedMusic;
@@ -168,7 +210,7 @@ const MusicManager = () => {
         }
         
         localStorage.setItem('musicLibrary', JSON.stringify(updatedMusic));
-        alert('Sauvegarde locale réussie (GitHub indisponible)');
+        alert('Sauvegarde locale réussie (GitHub indisponible - le fichier ne sera pas uploadé)');
         resetForm();
         await loadData();
       } catch (localErr) {
@@ -176,6 +218,7 @@ const MusicManager = () => {
       }
     } finally {
       setLoading(false);
+      setUploadProgress("");
     }
   };
 
@@ -186,6 +229,19 @@ const MusicManager = () => {
         setError(null);
         
         const currentMusic = await githubAPI.getMusic();
+        const itemToDelete = currentMusic.find(item => item.id === itemId);
+        
+        // Supprimer le fichier audio si il existe
+        if (itemToDelete && itemToDelete.file && hasAudio(itemToDelete.type)) {
+          try {
+            await githubAPI.deleteFile(`public/sounds/${itemToDelete.file}`);
+            console.log(`Fichier audio ${itemToDelete.file} supprimé`);
+          } catch (deleteFileErr) {
+            console.warn(`Erreur suppression fichier audio: ${deleteFileErr.message}`);
+            // On continue même si la suppression du fichier échoue
+          }
+        }
+        
         const updatedMusic = currentMusic.filter(item => item.id !== itemId);
         
         await githubAPI.updateMusicFile(updatedMusic);
@@ -231,6 +287,13 @@ const MusicManager = () => {
       {loading && (
         <div className="loading">
           Chargement...
+          {uploadProgress && <div className="upload-progress">{uploadProgress}</div>}
+        </div>
+      )}
+
+      {uploadProgress && !loading && (
+        <div className="message info">
+          {uploadProgress}
         </div>
       )}
 
@@ -318,6 +381,7 @@ const MusicManager = () => {
                 value={formData.type}
                 onChange={handleInputChange}
                 required
+                disabled={loading}
               >
                 <option value={MUSIC_TYPES.AUDIO}>
                   {getTypeEmoji(MUSIC_TYPES.AUDIO)} Musique avec fichier audio
@@ -336,6 +400,7 @@ const MusicManager = () => {
                 value={formData.title}
                 onChange={handleInputChange}
                 required
+                disabled={loading}
                 placeholder="Titre de la chanson ou du texte"
               />
             </div>
@@ -348,6 +413,7 @@ const MusicManager = () => {
                 value={formData.artist}
                 onChange={handleInputChange}
                 required
+                disabled={loading}
                 placeholder="Qui a créé ce contenu ?"
               />
             </div>
@@ -360,10 +426,17 @@ const MusicManager = () => {
                   accept="audio/*"
                   onChange={handleFileChange}
                   required={formData.type === MUSIC_TYPES.AUDIO && !isEditing}
+                  disabled={loading}
                 />
-                {formData.file && (
-                  <p className="file-info">Fichier: {formData.file}</p>
+                {formData.file && !selectedFile && (
+                  <p className="file-info">Fichier actuel: {formData.file}</p>
                 )}
+                {selectedFile && (
+                  <p className="file-info">Nouveau fichier: {selectedFile.name}</p>
+                )}
+                <small className="form-hint">
+                  Formats supportés: MP3, WAV, FLAC, OGG (max 10MB)
+                </small>
               </div>
             )}
 
@@ -374,6 +447,7 @@ const MusicManager = () => {
                   name="isDateUnknown"
                   checked={formData.isDateUnknown}
                   onChange={handleInputChange}
+                  disabled={loading}
                 />
                 Date inconnue
               </label>
@@ -387,6 +461,7 @@ const MusicManager = () => {
                   name="date"
                   value={formData.date}
                   onChange={handleInputChange}
+                  disabled={loading}
                 />
               </div>
             )}
@@ -399,6 +474,7 @@ const MusicManager = () => {
                 onChange={handleInputChange}
                 placeholder="Les paroles de la chanson ou le texte complet"
                 rows="8"
+                disabled={loading}
               />
             </div>
 
