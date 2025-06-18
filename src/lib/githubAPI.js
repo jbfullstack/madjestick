@@ -3,24 +3,21 @@ const GITHUB_TOKEN = process.env.REACT_APP_GITHUB_TOKEN;
 const REPO_OWNER = process.env.REACT_APP_GITHUB_OWNER;
 const REPO_NAME = process.env.REACT_APP_GITHUB_REPO;
 
-console.log('Owner:', process.env.REACT_APP_GITHUB_OWNER);
-console.log('Repo:', process.env.REACT_APP_GITHUB_REPO);
-
-// Helper function pour décoder base64 de manière sécurisée
+// Helper function pour décoder base64 de manière sécurisée avec UTF-8
 const safeBase64Decode = (encodedContent) => {
   try {
     // Nettoyer le contenu (supprimer les retours à la ligne et espaces)
     const cleanContent = encodedContent.replace(/\s/g, '');
-    // Décoder
+    // Décoder avec support UTF-8 complet
     const decoded = atob(cleanContent);
-    return decoded;
+    return decodeURIComponent(escape(decoded));
   } catch (error) {
     console.error('Erreur décodage base64:', error);
     throw new Error('Impossible de décoder le contenu du fichier');
   }
 };
 
-// Helper function pour encoder base64 de manière sécurisée
+// Helper function pour encoder base64 de manière sécurisée avec UTF-8
 const safeBase64Encode = (content) => {
   try {
     return btoa(unescape(encodeURIComponent(content)));
