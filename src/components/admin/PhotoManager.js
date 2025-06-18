@@ -201,12 +201,34 @@ const PhotoManager = () => {
         try {
           const uploadResult = await githubAPI.uploadFile(selectedFile, 'public/images');
           finalData.file = uploadResult.fileName;
-          setUploadProgress("Image uploadée avec succès !");
+          // Stocker le chemin complet pour l'affichage
+          finalData.fullPath = `/images/${uploadResult.fileName}`;
+          
+          console.log(`Photo uploadée: ${uploadResult.fileName}, fullPath: ${finalData.fullPath}`);
+          
+          // Informer l'utilisateur si le nom a été modifié
+          if (uploadResult.wasSanitized) {
+            setUploadProgress(`Image uploadée avec succès ! (Nom sanitisé: "${uploadResult.originalName}" → "${uploadResult.fileName}")`);
+          } else {
+            setUploadProgress("Image uploadée avec succès !");
+          }
         } catch (uploadErr) {
           throw new Error(`Erreur upload image: ${uploadErr.message}`);
         }
       } else if (!isEditing && !finalData.file) {
         throw new Error('Une image est requise');
+      } else if (isEditing && !selectedFile) {
+        // Si on édite sans changer l'image, s'assurer que fullPath existe
+        if (!finalData.fullPath && finalData.file) {
+          finalData.fullPath = `/images/${finalData.file}`;
+          console.log(`fullPath ajouté pour édition: ${finalData.fullPath}`);
+        }
+      }
+
+      // S'assurer que TOUTES les photos ont un fullPath avant sauvegarde
+      if (finalData.file && !finalData.fullPath) {
+        finalData.fullPath = `/images/${finalData.file}`;
+        console.log(`fullPath ajouté en dernier recours: ${finalData.fullPath}`);
       }
 
       // Get current photos from GitHub

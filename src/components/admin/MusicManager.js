@@ -148,7 +148,13 @@ const MusicManager = () => {
         try {
           const uploadResult = await githubAPI.uploadFile(selectedFile, 'public/sounds');
           finalData.file = uploadResult.fileName;
-          setUploadProgress("Fichier audio uploadé avec succès !");
+          
+          // Informer l'utilisateur si le nom a été modifié
+          if (uploadResult.wasSanitized) {
+            setUploadProgress(`Fichier audio uploadé avec succès ! (Nom sanitisé: "${uploadResult.originalName}" → "${uploadResult.fileName}")`);
+          } else {
+            setUploadProgress("Fichier audio uploadé avec succès !");
+          }
         } catch (uploadErr) {
           throw new Error(`Erreur upload audio: ${uploadErr.message}`);
         }

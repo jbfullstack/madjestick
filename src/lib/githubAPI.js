@@ -106,12 +106,43 @@ const cleanObjectEncoding = (obj) => {
   return obj;
 };
 
-// Helper function pour générer un nom de fichier unique
+// Helper function pour sanitiser un nom de fichier
+const sanitizeFileName = (fileName) => {
+  if (!fileName) return fileName;
+  
+  const parts = fileName.split('.');
+  const extension = parts.pop();
+  const nameWithoutExtension = parts.join('.');
+  
+  // Sanitiser le nom : 
+  // - Remplacer espaces par underscores
+  // - Supprimer caractères spéciaux dangereux
+  // - Garder seulement alphanumériques, underscores, tirets
+  // - Éviter les noms vides
+  const sanitizedName = nameWithoutExtension
+    .replace(/\s+/g, '_')                    // Espaces -> underscores
+    .replace(/[^\w\-_.]/g, '')               // Garder seulement word chars, tirets, points, underscores
+    .replace(/_{2,}/g, '_')                  // Multiples underscores -> un seul
+    .replace(/^_+|_+$/g, '')                 // Supprimer underscores début/fin
+    .substring(0, 100);                      // Limiter la longueur
+  
+  // Si le nom devient vide après sanitisation, utiliser un nom par défaut
+  const finalName = sanitizedName || 'file';
+  
+  return `${finalName}.${extension}`;
+};
+
+// Helper function pour générer un nom de fichier unique ET sanitisé
 const generateUniqueFileName = (originalName) => {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(2, 8);
-  const extension = originalName.split('.').pop();
-  const nameWithoutExtension = originalName.split('.').slice(0, -1).join('.');
+  
+  // D'abord sanitiser le nom original
+  const sanitizedName = sanitizeFileName(originalName);
+  
+  const parts = sanitizedName.split('.');
+  const extension = parts.pop();
+  const nameWithoutExtension = parts.join('.');
   
   return `${nameWithoutExtension}_${timestamp}_${random}.${extension}`;
 };
@@ -175,11 +206,18 @@ export const githubAPI = {
       // Convertir le fichier en base64
       const base64Content = await fileToBase64(file);
       
-      // Générer un nom de fichier unique pour éviter les conflits
-      const uniqueFileName = generateUniqueFileName(file.name);
-      const fullPath = `${targetPath}/${uniqueFileName}`;
+      // Générer un nom de fichier unique ET sanitisé
+      const sanitizedFileName = generateUniqueFileName(file.name);
+      const fullPath = `${targetPath}/${sanitizedFileName}`;
 
-      // Vérifier si le fichier existe déjà
+      console.log(`Upload: "${file.name}" -> "${sanitizedFileName}"`);
+      
+      // Informer si le nom a été modifié
+      if (file.name !== sanitizedFileName) {
+        console.log(`⚠️ Nom de fichier sanitisé: "${file.name}" -> "${sanitizedFileName}"`);
+      }
+
+      // Vérifier si le fichier existe déjà (très peu probable avec timestamp + random)
       const checkResponse = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${fullPath}`, {
         headers: {
           'Authorization': `token ${GITHUB_TOKEN}`,
@@ -191,11 +229,12 @@ export const githubAPI = {
       if (checkResponse.ok) {
         const existingFile = await checkResponse.json();
         sha = existingFile.sha;
+        console.log(`Fichier existant trouvé, mise à jour avec SHA: ${sha}`);
       }
 
       // Upload du fichier
       const uploadPayload = {
-        message: `Upload ${file.type.includes('image') ? 'image' : 'audio'}: ${uniqueFileName}`,
+        message: `Upload ${file.type.includes('image') ? 'image' : 'audio'}: ${sanitizedFileName}${file.name !== sanitizedFileName ? ` (sanitized from: ${file.name})` : ''}`,
         content: base64Content,
       };
 
@@ -219,13 +258,14 @@ export const githubAPI = {
       }
 
       const result = await uploadResponse.json();
-      console.log(`Fichier uploadé avec succès: ${uniqueFileName}`);
+      console.log(`✅ Fichier uploadé avec succès: ${sanitizedFileName}`);
       
       return {
-        fileName: uniqueFileName,
+        fileName: sanitizedFileName,
         originalName: file.name,
         path: fullPath,
-        downloadUrl: result.content.download_url
+        downloadUrl: result.content.download_url,
+        wasSanitized: file.name !== sanitizedFileName
       };
     } catch (error) {
       console.error('Erreur upload fichier:', error);
@@ -394,7 +434,7 @@ export const githubAPI = {
   async getPhotos() {
     try {
       // Essayer de créer le fichier s'il n'existe pas
-      return await this.createFileIfNotExists('src/data/photoLibrary.json', [
+      let photos = await this.createFileIfNotExists('src/data/photoLibrary.json', [
         {
           id: 1,
           title: "Première photo ensemble",
@@ -405,6 +445,17 @@ export const githubAPI = {
           tags: ["couple", "première fois", "restaurant"]
         }
       ]);
+
+      // S'assurer que toutes les photos ont un fullPath
+      photos = photos.map(photo => {
+        if (!photo.fullPath && photo.file) {
+          photo.fullPath = `/images/${photo.file}`;
+          console.log(`fullPath ajouté automatiquement pour ${photo.title}: ${photo.fullPath}`);
+        }
+        return photo;
+      });
+
+      return photos;
     } catch (error) {
       console.error('Erreur récupération photos:', error);
       throw error;
@@ -453,7 +504,92 @@ export const githubAPI = {
     }
   },
 
-  // Récupérer la musique depuis GitHub
+  // Fonction pour corriger les noms de fichiers avec espaces
+  async fixFileNamesWithSpaces() {
+    try {
+      console.log('Correction des noms de fichiers...');
+      
+      // Récupérer les photos actuelles
+      const photos = await this.getPhotos();
+      let hasChanges = false;
+      
+      // Traiter chaque photo
+      for (const photo of photos) {
+        if (photo.file && photo.file.includes(' ')) {
+          const oldFileName = photo.file;
+          const newFileName = oldFileName
+            .replace(/\s+/g, '_')
+            .replace(/[^a-zA-Z0-9._-]/g, '')
+            .replace(/_{2,}/g, '_')
+            .replace(/^_+|_+$/g, '');
+          
+          console.log(`Correction: ${oldFileName} -> ${newFileName}`);
+          
+          try {
+            // Récupérer le fichier avec l'ancien nom
+            const oldFileResponse = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/public/images/${oldFileName}`, {
+              headers: {
+                'Authorization': `token ${GITHUB_TOKEN}`,
+                'Accept': 'application/vnd.github.v3+json',
+              }
+            });
+            
+            if (oldFileResponse.ok) {
+              const oldFileData = await oldFileResponse.json();
+              
+              // Créer le fichier avec le nouveau nom
+              await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/public/images/${newFileName}`, {
+                method: 'PUT',
+                headers: {
+                  'Authorization': `token ${GITHUB_TOKEN}`,
+                  'Accept': 'application/vnd.github.v3+json',
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  message: `Rename file: ${oldFileName} -> ${newFileName}`,
+                  content: oldFileData.content,
+                })
+              });
+              
+              // Supprimer l'ancien fichier
+              await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/public/images/${oldFileName}`, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': `token ${GITHUB_TOKEN}`,
+                  'Accept': 'application/vnd.github.v3+json',
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  message: `Delete old file: ${oldFileName}`,
+                  sha: oldFileData.sha,
+                })
+              });
+              
+              // Mettre à jour les données de la photo
+              photo.file = newFileName;
+              photo.fullPath = `/images/${newFileName}`;
+              hasChanges = true;
+            }
+          } catch (fileError) {
+            console.warn(`Erreur correction fichier ${oldFileName}:`, fileError);
+          }
+        }
+      }
+      
+      // Sauvegarder les changements dans le JSON si nécessaire
+      if (hasChanges) {
+        await this.updatePhotosFile(photos);
+        console.log('Noms de fichiers corrigés avec succès!');
+      } else {
+        console.log('Aucun fichier à corriger.');
+      }
+      
+      return photos;
+    } catch (error) {
+      console.error('Erreur correction noms de fichiers:', error);
+      throw error;
+    }
+  },
   async getMusic() {
     try {
       const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/src/data/musicLibrary.json`, {
