@@ -10,8 +10,8 @@
   },
   {
     "id": 2,
-   "title": "Djé hair cut",
-    "description": "Unephoto pour montrer la nouvelle coupe de cheveux",
+    "title": "Djé hair cut",
+    "description": "Une photo pour montrer la nouvelle coupe de cheveux",
     "category": "portraits",
     "file": "photo3.jpg",
     "date": "2025-04-25",
@@ -31,7 +31,7 @@
     "title": "Djécéroce bigleux",
     "description": "Un djécéroce dans son habitat naturel",
     "category": "portraits",
-    "file": "photo4.jpg",
+    "file": "photo2.jpg",
     "date": "2025-04-30",
     "tags": ["animaux", "djé"]
   },
@@ -40,7 +40,7 @@
     "title": "Coqueliquelots",
     "description": "Des jolies coquelicots",
     "category": "nature",
-    "file": "photo2.jpg",
+    "file": "photo5.jpg",
     "date": "2025-04-20",
     "tags": ["nature"]
   }

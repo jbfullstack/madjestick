@@ -2,7 +2,7 @@
 import photoLibrary from '../data/photoLibrary.json';
 import photoCategories from '../data/photoCategories.json';
 
-// Photo categories constant for backward compatibility
+// Photo categories constant for backward compatibility only
 export const PHOTO_CATEGORIES = {
   NOUS: 'nous',
   MOMENTS: 'moments',
@@ -19,21 +19,21 @@ export const loadPhotoCategories = () => {
   }
 };
 
-// Get category emoji
+// Get category emoji from JSON
 export const getCategoryEmoji = (categoryId) => {
   const categories = loadPhotoCategories();
   const category = categories.find(cat => cat.id === categoryId);
   return category ? category.emoji : '📷';
 };
 
-// Get category label
+// Get category label from JSON
 export const getCategoryLabel = (categoryId) => {
   const categories = loadPhotoCategories();
   const category = categories.find(cat => cat.id === categoryId);
   return category ? category.label : categoryId;
 };
 
-// Add a new category to the JSON (simulated - in real app would save to backend)
+// Add a new category (stored in localStorage temporarily)
 export const addPhotoCategory = (categoryData) => {
   const categories = loadPhotoCategories();
   const newCategory = {
@@ -47,8 +47,7 @@ export const addPhotoCategory = (categoryData) => {
     throw new Error('Cette catégorie existe déjà');
   }
   
-  // In a real app, you would save this to backend/JSON file
-  // For now, we'll use localStorage as backup
+  // Save to localStorage as backup (in real app would save to backend/JSON)
   const savedCategories = localStorage.getItem('additionalPhotoCategories');
   const additionalCategories = savedCategories ? JSON.parse(savedCategories) : [];
   
@@ -75,7 +74,7 @@ export const getAllPhotoCategories = () => {
 
 // Remove a category (only additional ones from localStorage)
 export const removePhotoCategory = (categoryId) => {
-  // Don't allow removal of base categories
+  // Don't allow removal of base categories from JSON
   const baseCategories = loadPhotoCategories();
   if (baseCategories.find(cat => cat.id === categoryId)) {
     throw new Error('Impossible de supprimer une catégorie de base');
@@ -95,21 +94,30 @@ export const removePhotoCategory = (categoryId) => {
   }
 };
 
-// Load photo library
+// Dynamic image loader based on photoLibrary.json
 export const loadPhotoLibrary = () => {
   try {
-    // Add full image path to each photo
     return photoLibrary.map(photo => {
-      try {
+      // Si le fichier est "placeholder", utiliser un placeholder personnalisé
+      if (photo.file === "placeholder") {
         return {
           ...photo,
-          fullPath: require(`../images/${photo.file}`)
+          fullPath: `https://via.placeholder.com/300x300/ba55d3/ffffff?text=${encodeURIComponent(photo.title)}`
+        };
+      }
+      
+      // Try to load the image dynamically based on filename from JSON
+      try {
+        const imagePath = require(`../images/${photo.file}`);
+        return {
+          ...photo,
+          fullPath: imagePath
         };
       } catch (error) {
-        console.warn(`Image not found: ${photo.file}`);
+        console.warn(`Image not found: ${photo.file}, using placeholder with title`);
         return {
           ...photo,
-          fullPath: 'https://via.placeholder.com/300x300/9370db/ffffff?text=No+Image'
+          fullPath: `https://via.placeholder.com/300x300/9370db/ffffff?text=${encodeURIComponent(photo.title || 'Photo')}`
         };
       }
     });
@@ -146,7 +154,7 @@ export const getPhotosByTags = (tags) => {
   );
 };
 
-// Get all available tags
+// Get all available tags from JSON data
 export const getAllTags = () => {
   const photos = loadPhotoLibrary();
   const allTags = photos.reduce((tags, photo) => {
