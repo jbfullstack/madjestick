@@ -2,100 +2,40 @@
 import React, { useState, useEffect } from "react";
 import "../../styles/PhotoPage.css";
 import { 
+  loadPhotoLibrary, 
+  getPhotosByCategory, 
   PHOTO_CATEGORIES, 
-  getCategoryLabel 
+  getCategoryLabel,
+  getAllPhotoCategories
 } from "../../utils/photoLoader";
-import { githubAPI } from "../../lib/githubAPI";
 
 const PhotoPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [photos, setPhotos] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadPhotos();
   }, [selectedCategory]);
 
-  const loadPhotos = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Try to load from GitHub first
-      let allPhotos;
-      try {
-        allPhotos = await githubAPI.getPhotos();
-      } catch (githubError) {
-        console.warn('GitHub API failed, falling back to localStorage:', githubError);
-        // Fallback to localStorage
-        const localData = localStorage.getItem('photosLibrary');
-        if (localData) {
-          allPhotos = JSON.parse(localData);
-        } else {
-          // Final fallback to default photos
-          allPhotos = [
-            {
-              id: 1,
-              title: "Photo 1",
-              category: "nous",
-              file: "photo1.jpg",
-              description: "Photo par défaut"
-            }
-          ];
-        }
-      }
-
-      // Add full path for images
-      allPhotos = allPhotos.map(photo => ({
-        ...photo,
-        fullPath: `/images/${photo.file}` // Chemin public/ au lieu de src/
-      }));
-
-      if (selectedCategory === "all") {
-        setPhotos(allPhotos);
-      } else {
-        setPhotos(allPhotos.filter(photo => photo.category === selectedCategory));
-      }
-    } catch (err) {
-      setError('Erreur lors du chargement des photos: ' + err.message);
-      console.error('Error loading photos:', err);
-    } finally {
-      setLoading(false);
+  const loadPhotos = () => {
+    if (selectedCategory === "all") {
+      setPhotos(loadPhotoLibrary());
+    } else {
+      setPhotos(getPhotosByCategory(selectedCategory));
     }
   };
 
   const categories = [
     { id: "all", label: "All Photos" },
-    { id: PHOTO_CATEGORIES.NOUS, label: getCategoryLabel(PHOTO_CATEGORIES.NOUS) },
-    { id: PHOTO_CATEGORIES.MOMENTS, label: getCategoryLabel(PHOTO_CATEGORIES.MOMENTS) },
-    { id: PHOTO_CATEGORIES.AUTRES, label: getCategoryLabel(PHOTO_CATEGORIES.AUTRES) },
+    ...getAllPhotoCategories().map(cat => ({ id: cat.id, label: cat.label }))
   ];
 
   const groupedPhotos = selectedCategory === "all" 
-    ? Object.values(PHOTO_CATEGORIES).reduce((acc, category) => {
-        acc[category] = photos.filter(photo => photo.category === category);
+    ? getAllPhotoCategories().reduce((acc, category) => {
+        acc[category.id] = photos.filter(photo => photo.category === category.id);
         return acc;
       }, {})
     : { [selectedCategory]: photos };
-
-  if (loading) {
-    return (
-      <div className="photo-page">
-        <h1>Madjestick Photo Gallery</h1>
-        <div className="loading">Chargement des photos...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="photo-page">
-        <h1>Madjestick Photo Gallery</h1>
-        <div className="message error">{error}</div>
-      </div>
-    );
-  }
 
   return (
     <div className="photo-page">

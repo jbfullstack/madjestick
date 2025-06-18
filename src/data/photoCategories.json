@@ -1,0 +1,27 @@
+[
+  {
+    "id": "nous",
+    "label": "Nous",
+    "emoji": "💕"
+  },
+  {
+    "id": "moments",
+    "label": "Moments",
+    "emoji": "✨"
+  },
+  {
+    "id": "autres",
+    "label": "Autres",
+    "emoji": "📸"
+  },
+  {
+    "id": "portraits",
+    "label": "Portraits",
+    "emoji": "👩"
+  },
+  {
+     "id": "nature",
+    "label": "Nature",
+    "emoji": "🌸"
+  }  
+]
