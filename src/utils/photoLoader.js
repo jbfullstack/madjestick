@@ -94,35 +94,32 @@ export const removePhotoCategory = (categoryId) => {
   }
 };
 
-// Dynamic image loader based on photoLibrary.json
+// Load photo library - SIMPLE VERSION with public images
 export const loadPhotoLibrary = () => {
   try {
+    console.log('📸 Loading photo library from public/images/...');
+    
     return photoLibrary.map(photo => {
       // Si le fichier est "placeholder", utiliser un placeholder personnalisé
       if (photo.file === "placeholder") {
+        console.log(`🖼️ Using placeholder for: ${photo.title}`);
         return {
           ...photo,
           fullPath: `https://via.placeholder.com/300x300/ba55d3/ffffff?text=${encodeURIComponent(photo.title)}`
         };
       }
       
-      // Try to load the image dynamically based on filename from JSON
-      try {
-        const imagePath = require(`../images/${photo.file}`);
-        return {
-          ...photo,
-          fullPath: imagePath
-        };
-      } catch (error) {
-        console.warn(`Image not found: ${photo.file}, using placeholder with title`);
-        return {
-          ...photo,
-          fullPath: `https://via.placeholder.com/300x300/9370db/ffffff?text=${encodeURIComponent(photo.title || 'Photo')}`
-        };
-      }
+      // Images are in public/images/ - simple URL
+      const fullPath = `/images/${photo.file}`;
+      console.log(`✅ Photo loaded: ${photo.title} -> ${fullPath}`);
+      
+      return {
+        ...photo,
+        fullPath: fullPath
+      };
     });
   } catch (error) {
-    console.error('Error loading photo library:', error);
+    console.error('❌ Error loading photo library:', error);
     return [];
   }
 };
