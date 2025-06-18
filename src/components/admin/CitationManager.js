@@ -39,10 +39,11 @@ const CitationManager = () => {
       setLoading(true);
       setError(null);
       const citationData = await githubAPI.getCitations();
-      setCitations(citationData);
+      setCitations(Array.isArray(citationData) ? citationData : []);
       
       // Extract all unique authors
-      const authors = citationData.map(citation => citation.author);
+      const validData = Array.isArray(citationData) ? citationData : [];
+      const authors = validData.map(citation => citation.author).filter(Boolean);
       setAllAuthors([...new Set(authors)]);
     } catch (err) {
       setError('Erreur lors du chargement des citations: ' + err.message);
@@ -51,10 +52,20 @@ const CitationManager = () => {
       // Fallback to localStorage if GitHub fails
       const localData = localStorage.getItem('citationsLibrary');
       if (localData) {
-        const parsedData = JSON.parse(localData);
-        setCitations(parsedData);
-        const authors = parsedData.map(citation => citation.author);
-        setAllAuthors([...new Set(authors)]);
+        try {
+          const parsedData = JSON.parse(localData);
+          const validData = Array.isArray(parsedData) ? parsedData : [];
+          setCitations(validData);
+          const authors = validData.map(citation => citation.author).filter(Boolean);
+          setAllAuthors([...new Set(authors)]);
+        } catch (parseError) {
+          console.error('Error parsing local citations:', parseError);
+          setCitations([]);
+          setAllAuthors([]);
+        }
+      } else {
+        setCitations([]);
+        setAllAuthors([]);
       }
     } finally {
       setLoading(false);
@@ -197,14 +208,16 @@ const CitationManager = () => {
     }
   };
 
-  const filteredCitations = citations.filter(citation => {
-    const matchesSearch = citation.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         citation.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         citation.context?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === "all" || citation.category === filterCategory;
-    const matchesAuthor = filterAuthor === "all" || citation.author === filterAuthor;
-    return matchesSearch && matchesCategory && matchesAuthor;
-  });
+  const filteredCitations = Array.isArray(citations) 
+    ? citations.filter(citation => {
+        const matchesSearch = citation.text?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                             citation.author?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                             citation.context?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory = filterCategory === "all" || citation.category === filterCategory;
+        const matchesAuthor = filterAuthor === "all" || citation.author === filterAuthor;
+        return matchesSearch && matchesCategory && matchesAuthor;
+      })
+    : [];
 
   return (
     <div className="manager-container">

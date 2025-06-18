@@ -37,7 +37,8 @@ const MusicManager = () => {
       setLoading(true);
       setError(null);
       const musicData = await githubAPI.getMusic();
-      setMusicItems(musicData);
+      // S'assurer que musicData est un tableau
+      setMusicItems(Array.isArray(musicData) ? musicData : []);
     } catch (err) {
       setError('Erreur lors du chargement de la musique: ' + err.message);
       console.error('Error loading music:', err);
@@ -45,8 +46,15 @@ const MusicManager = () => {
       // Fallback to localStorage
       const localData = localStorage.getItem('musicLibrary');
       if (localData) {
-        const parsedData = JSON.parse(localData);
-        setMusicItems(parsedData);
+        try {
+          const parsedData = JSON.parse(localData);
+          setMusicItems(Array.isArray(parsedData) ? parsedData : []);
+        } catch (parseError) {
+          console.error('Error parsing local music data:', parseError);
+          setMusicItems([]);
+        }
+      } else {
+        setMusicItems([]);
       }
     } finally {
       setLoading(false);
@@ -195,13 +203,15 @@ const MusicManager = () => {
     }
   };
 
-  const filteredItems = musicItems.filter(item => {
-    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.artist.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.lyrics?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === "all" || item.type === filterType;
-    return matchesSearch && matchesType;
-  });
+  const filteredItems = Array.isArray(musicItems) 
+    ? musicItems.filter(item => {
+        const matchesSearch = item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                             item.artist?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                             item.lyrics?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesType = filterType === "all" || item.type === filterType;
+        return matchesSearch && matchesType;
+      })
+    : [];
 
   return (
     <div className="manager-container">

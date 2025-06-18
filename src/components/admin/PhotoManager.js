@@ -43,11 +43,12 @@ const PhotoManager = () => {
       setLoading(true);
       setError(null);
       const photoData = await githubAPI.getPhotos();
-      setPhotos(photoData);
+      setPhotos(Array.isArray(photoData) ? photoData : []);
       
       // Extract all unique tags
-      const tags = photoData.reduce((acc, photo) => {
-        if (photo.tags) {
+      const validData = Array.isArray(photoData) ? photoData : [];
+      const tags = validData.reduce((acc, photo) => {
+        if (photo.tags && Array.isArray(photo.tags)) {
           return [...acc, ...photo.tags];
         }
         return acc;
@@ -57,7 +58,13 @@ const PhotoManager = () => {
       // Load custom categories from localStorage
       const savedCategories = localStorage.getItem('customPhotoCategories');
       if (savedCategories) {
-        setCustomCategories(JSON.parse(savedCategories));
+        try {
+          const parsedCategories = JSON.parse(savedCategories);
+          setCustomCategories(Array.isArray(parsedCategories) ? parsedCategories : []);
+        } catch (parseError) {
+          console.error('Error parsing custom categories:', parseError);
+          setCustomCategories([]);
+        }
       }
     } catch (err) {
       setError('Erreur lors du chargement des photos: ' + err.message);
@@ -66,13 +73,23 @@ const PhotoManager = () => {
       // Fallback to localStorage
       const localData = localStorage.getItem('photosLibrary');
       if (localData) {
-        const parsedData = JSON.parse(localData);
-        setPhotos(parsedData);
-        const tags = parsedData.reduce((acc, photo) => {
-          if (photo.tags) return [...acc, ...photo.tags];
-          return acc;
-        }, []);
-        setAllTags([...new Set(tags)]);
+        try {
+          const parsedData = JSON.parse(localData);
+          const validData = Array.isArray(parsedData) ? parsedData : [];
+          setPhotos(validData);
+          const tags = validData.reduce((acc, photo) => {
+            if (photo.tags && Array.isArray(photo.tags)) return [...acc, ...photo.tags];
+            return acc;
+          }, []);
+          setAllTags([...new Set(tags)]);
+        } catch (parseError) {
+          console.error('Error parsing local photos:', parseError);
+          setPhotos([]);
+          setAllTags([]);
+        }
+      } else {
+        setPhotos([]);
+        setAllTags([]);
       }
     } finally {
       setLoading(false);
@@ -267,12 +284,14 @@ const PhotoManager = () => {
     return [...defaultCategories, ...customCategories];
   };
 
-  const filteredPhotos = photos.filter(photo => {
-    const matchesSearch = photo.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         photo.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === "all" || photo.category === filterCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredPhotos = Array.isArray(photos) 
+    ? photos.filter(photo => {
+        const matchesSearch = photo.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                             photo.description?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory = filterCategory === "all" || photo.category === filterCategory;
+        return matchesSearch && matchesCategory;
+      })
+    : [];
 
   const allCategories = getAllCategories();
 

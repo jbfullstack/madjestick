@@ -3,10 +3,6 @@ const GITHUB_TOKEN = process.env.REACT_APP_GITHUB_TOKEN;
 const REPO_OWNER = process.env.REACT_APP_GITHUB_OWNER;
 const REPO_NAME = process.env.REACT_APP_GITHUB_REPO;
 
-console.log('Token:', process.env.REACT_APP_GITHUB_TOKEN);
-console.log('Owner:', process.env.REACT_APP_GITHUB_OWNER);
-console.log('Repo:', process.env.REACT_APP_GITHUB_REPO);
-
 // Helper function pour décoder base64 de manière sécurisée
 const safeBase64Decode = (encodedContent) => {
   try {
@@ -32,6 +28,53 @@ const safeBase64Encode = (content) => {
 };
 
 export const githubAPI = {
+  // Créer un fichier s'il n'existe pas
+  async createFileIfNotExists(filePath, initialContent) {
+    try {
+      // Essayer de récupérer le fichier
+      const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}`, {
+        headers: {
+          'Authorization': `token ${GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github.v3+json',
+        }
+      });
+      
+      if (response.status === 404) {
+        // Le fichier n'existe pas, le créer
+        const content = safeBase64Encode(JSON.stringify(initialContent, null, 2));
+        
+        const createResponse = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${GITHUB_TOKEN}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: `Create ${filePath}`,
+            content: content,
+          })
+        });
+        
+        if (!createResponse.ok) {
+          throw new Error(`Erreur lors de la création du fichier: ${createResponse.status}`);
+        }
+        
+        console.log(`Fichier ${filePath} créé avec succès`);
+        return initialContent;
+      } else if (response.ok) {
+        // Le fichier existe déjà
+        const fileData = await response.json();
+        const content = safeBase64Decode(fileData.content);
+        return JSON.parse(content);
+      } else {
+        throw new Error(`Erreur GitHub API: ${response.status}`);
+      }
+    } catch (error) {
+      console.error(`Erreur création/lecture fichier ${filePath}:`, error);
+      throw error;
+    }
+  },
   // Mettre à jour le fichier citations sur GitHub
   async updateCitationsFile(citations) {
     try {
@@ -142,20 +185,18 @@ export const githubAPI = {
   // Récupérer les photos depuis GitHub
   async getPhotos() {
     try {
-      const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/src/data/photoLibrary.json`, {
-        headers: {
-          'Authorization': `token ${GITHUB_TOKEN}`,
-          'Accept': 'application/vnd.github.v3+json',
+      // Essayer de créer le fichier s'il n'existe pas
+      return await this.createFileIfNotExists('src/data/photoLibrary.json', [
+        {
+          id: 1,
+          title: "Première photo ensemble",
+          description: "Notre première sortie officielle",
+          category: "nous",
+          file: "photo1.jpg",
+          date: "2025-04-15",
+          tags: ["couple", "première fois", "restaurant"]
         }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`GitHub API error: ${response.status}`);
-      }
-      
-      const fileData = await response.json();
-      const content = safeBase64Decode(fileData.content);
-      return JSON.parse(content);
+      ]);
     } catch (error) {
       console.error('Erreur récupération photos:', error);
       throw error;
