@@ -13,9 +13,13 @@ const useTypingEffect = () => {
 
   // Load citations on component mount
   useEffect(() => {
-    const favoriteCitations = getFavoriteCitations();
+    // Try to load from localStorage first, then fallback to JSON
+    const savedCitations = localStorage.getItem('citationsLibrary');
+    const allCitations = savedCitations ? JSON.parse(savedCitations) : [];
+    
+    const favoriteCitations = allCitations.filter(citation => citation.isFavorite);
     const sentences = favoriteCitations.map(citation => 
-      `${citation.text} (${citation.date})`
+      `${citation.text} (${citation.date === "unknown" ? "date inconnue" : citation.date})`
     );
     
     // Fallback to original sentences if no citations available

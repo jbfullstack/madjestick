@@ -21,7 +21,9 @@ const MusicManager = () => {
     artist: "",
     type: MUSIC_TYPES.AUDIO,
     file: "",
-    lyrics: ""
+    lyrics: "",
+    date: "",
+    isDateUnknown: false
   });
 
   useEffect(() => {
@@ -29,18 +31,23 @@ const MusicManager = () => {
   }, []);
 
   const loadData = () => {
-    const musicData = loadMusicLibrary();
+    // Try to load from localStorage first, then fallback to JSON
+    const savedMusic = localStorage.getItem('musicLibrary');
+    const musicData = savedMusic ? JSON.parse(savedMusic) : loadMusicLibrary();
+    
     setMusicItems(musicData);
   };
 
   const resetForm = () => {
     setFormData({
-      id: "",
+      id: 0,
       title: "",
       artist: "",
       type: MUSIC_TYPES.AUDIO,
       file: "",
-      lyrics: ""
+      lyrics: "",
+      date: new Date().toISOString().split('T')[0],
+      isDateUnknown: false
     });
     setSelectedItem(null);
     setIsEditing(false);
@@ -53,17 +60,19 @@ const MusicManager = () => {
       artist: item.artist,
       type: item.type,
       file: item.file || "",
-      lyrics: item.lyrics || ""
+      lyrics: item.lyrics || "",
+      date: item.date === "unknown" ? "" : (item.date || ""),
+      isDateUnknown: item.date === "unknown"
     });
     setSelectedItem(item);
     setIsEditing(true);
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
@@ -81,14 +90,33 @@ const MusicManager = () => {
     e.preventDefault();
     
     // Generate ID for new items
-    if (!formData.id) {
-      const newId = `music${Date.now()}`;
-      setFormData(prev => ({ ...prev, id: newId }));
+    let finalData = { ...formData };
+    if (!finalData.id) {
+      finalData.id = Date.now();
     }
 
-    // In a real app, you would save to backend/localStorage
-    console.log("Music data to save:", formData);
-    alert(`${formData.type === MUSIC_TYPES.TEXT ? 'Texte' : 'Musique'} "${formData.title}" ${isEditing ? 'updated' : 'created'} successfully!`);
+    // Handle unknown date
+    finalData.date = formData.isDateUnknown ? "unknown" : formData.date;
+
+    // Get existing music from localStorage or use default
+    const existingMusic = JSON.parse(localStorage.getItem('musicLibrary')) || loadMusicLibrary();
+    
+    let updatedMusic;
+    if (isEditing) {
+      // Update existing item
+      updatedMusic = existingMusic.map(item => 
+        item.id === finalData.id ? finalData : item
+      );
+    } else {
+      // Add new item
+      updatedMusic = [...existingMusic, finalData];
+    }
+
+    // Save to localStorage
+    localStorage.setItem('musicLibrary', JSON.stringify(updatedMusic));
+
+    console.log("Music data saved:", finalData);
+    alert(`${finalData.type === MUSIC_TYPES.TEXT ? 'Texte' : 'Musique'} "${finalData.title}" ${isEditing ? 'modifié(e)' : 'ajouté(e)'} avec succès!`);
     
     resetForm();
     loadData();
@@ -96,9 +124,17 @@ const MusicManager = () => {
 
   const handleDelete = (itemId) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cet élément ?")) {
-      // In a real app, you would delete from backend/localStorage
-      console.log("Delete item:", itemId);
-      alert("Élément supprimé!");
+      // Get existing music from localStorage or use default
+      const existingMusic = JSON.parse(localStorage.getItem('musicLibrary')) || loadMusicLibrary();
+      
+      // Remove the item
+      const updatedMusic = existingMusic.filter(item => item.id !== itemId);
+      
+      // Save to localStorage
+      localStorage.setItem('musicLibrary', JSON.stringify(updatedMusic));
+      
+      console.log("Music item deleted:", itemId);
+      alert("Élément supprimé avec succès!");
       resetForm();
       loadData();
     }
@@ -159,6 +195,11 @@ const MusicManager = () => {
                     </span>
                   </div>
                   <p className="music-artist">par {item.artist}</p>
+                  {item.date && (
+                    <p className="music-date">
+                      {item.date === "unknown" ? "Date inconnue" : item.date}
+                    </p>
+                  )}
                   {item.file && hasAudio(item.type) && (
                     <p className="music-file">🎵 {item.file}</p>
                   )}

@@ -29,7 +29,7 @@ const AdminPage = () => {
 
   return (
     <div className="admin-page">
-      <h1>Administration Madjestick</h1>
+      <h1>Madjestitration</h1>
       
       <div className="admin-tabs">
         {tabs.map((tab) => (

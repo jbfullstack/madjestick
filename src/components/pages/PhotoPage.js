@@ -2,8 +2,6 @@
 import React, { useState, useEffect } from "react";
 import "../../styles/PhotoPage.css";
 import { 
-  loadPhotoLibrary, 
-  getPhotosByCategory, 
   PHOTO_CATEGORIES, 
   getCategoryLabel 
 } from "../../utils/photoLoader";
@@ -17,10 +15,35 @@ const PhotoPage = () => {
   }, [selectedCategory]);
 
   const loadPhotos = () => {
-    if (selectedCategory === "all") {
-      setPhotos(loadPhotoLibrary());
+    // Try to load from localStorage first, then fallback to photo loader
+    const savedPhotos = localStorage.getItem('photosLibrary');
+    let allPhotos;
+    
+    if (savedPhotos) {
+      allPhotos = JSON.parse(savedPhotos);
     } else {
-      setPhotos(getPhotosByCategory(selectedCategory));
+      // Fallback to default photos
+      allPhotos = [
+        {
+          id: 1,
+          title: "Photo 1",
+          category: "nous",
+          file: "photo1.jpg",
+          description: "Photo par défaut"
+        }
+      ];
+    }
+
+    // Add full path for images
+    allPhotos = allPhotos.map(photo => ({
+      ...photo,
+      fullPath: `/src/images/${photo.file}` // You might need to adjust this path
+    }));
+
+    if (selectedCategory === "all") {
+      setPhotos(allPhotos);
+    } else {
+      setPhotos(allPhotos.filter(photo => photo.category === selectedCategory));
     }
   };
 

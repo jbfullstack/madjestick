@@ -25,7 +25,8 @@ const CitationManager = () => {
     date: "",
     context: "",
     category: CITATION_CATEGORIES.QUOTIDIEN,
-    isFavorite: false
+    isFavorite: false,
+    isDateUnknown: false
   });
 
   useEffect(() => {
@@ -33,20 +34,27 @@ const CitationManager = () => {
   }, []);
 
   const loadData = () => {
-    const citationData = loadCitationsLibrary();
+    // Try to load from localStorage first, then fallback to JSON
+    const savedCitations = localStorage.getItem('citationsLibrary');
+    const citationData = savedCitations ? JSON.parse(savedCitations) : loadCitationsLibrary();
+    
     setCitations(citationData);
-    setAllAuthors(getAllAuthors());
+    
+    // Extract all unique authors
+    const authors = citationData.map(citation => citation.author);
+    setAllAuthors([...new Set(authors)]);
   };
 
   const resetForm = () => {
     setFormData({
-      id: "",
+      id: 0,
       text: "",
       author: "",
       date: new Date().toISOString().split('T')[0],
       context: "",
       category: CITATION_CATEGORIES.QUOTIDIEN,
-      isFavorite: false
+      isFavorite: false,
+      isDateUnknown: false
     });
     setSelectedCitation(null);
     setIsEditing(false);
@@ -57,10 +65,11 @@ const CitationManager = () => {
       id: citation.id,
       text: citation.text,
       author: citation.author,
-      date: citation.date,
+      date: citation.date === "unknown" ? "" : citation.date,
       context: citation.context || "",
       category: citation.category,
-      isFavorite: citation.isFavorite || false
+      isFavorite: citation.isFavorite || false,
+      isDateUnknown: citation.date === "unknown"
     });
     setSelectedCitation(citation);
     setIsEditing(true);
@@ -78,14 +87,33 @@ const CitationManager = () => {
     e.preventDefault();
     
     // Generate ID for new citations
-    if (!formData.id) {
-      const newId = `citation${Date.now()}`;
-      setFormData(prev => ({ ...prev, id: newId }));
+    let finalData = { ...formData };
+    if (!finalData.id) {
+      finalData.id = Date.now();
     }
 
-    // In a real app, you would save to backend/localStorage
-    console.log("Citation data to save:", formData);
-    alert(`Citation "${formData.text.substring(0, 30)}..." ${isEditing ? 'updated' : 'created'} successfully!`);
+    // Handle unknown date
+    finalData.date = formData.isDateUnknown ? "unknown" : formData.date;
+
+    // Get existing citations from localStorage or use default
+    const existingCitations = JSON.parse(localStorage.getItem('citationsLibrary')) || loadCitationsLibrary();
+    
+    let updatedCitations;
+    if (isEditing) {
+      // Update existing citation
+      updatedCitations = existingCitations.map(citation => 
+        citation.id === finalData.id ? finalData : citation
+      );
+    } else {
+      // Add new citation
+      updatedCitations = [...existingCitations, finalData];
+    }
+
+    // Save to localStorage
+    localStorage.setItem('citationsLibrary', JSON.stringify(updatedCitations));
+
+    console.log("Citation data saved:", finalData);
+    alert(`Citation "${finalData.text.substring(0, 30)}..." ${isEditing ? 'modifiée' : 'ajoutée'} avec succès!`);
     
     resetForm();
     loadData();
@@ -93,9 +121,17 @@ const CitationManager = () => {
 
   const handleDelete = (citationId) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cette citation ?")) {
-      // In a real app, you would delete from backend/localStorage
-      console.log("Delete citation:", citationId);
-      alert("Citation supprimée!");
+      // Get existing citations from localStorage or use default
+      const existingCitations = JSON.parse(localStorage.getItem('citationsLibrary')) || loadCitationsLibrary();
+      
+      // Remove the citation
+      const updatedCitations = existingCitations.filter(citation => citation.id !== citationId);
+      
+      // Save to localStorage
+      localStorage.setItem('citationsLibrary', JSON.stringify(updatedCitations));
+      
+      console.log("Citation deleted:", citationId);
+      alert("Citation supprimée avec succès!");
       resetForm();
       loadData();
     }
@@ -167,7 +203,9 @@ const CitationManager = () => {
                       {getCategoryEmoji(citation.category)} {getCategoryLabel(citation.category)}
                     </span>
                     {citation.isFavorite && <span className="favorite-indicator">⭐</span>}
-                    <span className="citation-date">{citation.date}</span>
+                    <span className="citation-date">
+                      {citation.date === "unknown" ? "Date inconnue" : citation.date}
+                    </span>
                   </div>
                   <blockquote className="citation-text">
                     "{citation.text}"
@@ -251,15 +289,29 @@ const CitationManager = () => {
             </div>
 
             <div className="form-group">
-              <label>Date *</label>
-              <input
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleInputChange}
-                required
-              />
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="isDateUnknown"
+                  checked={formData.isDateUnknown}
+                  onChange={handleInputChange}
+                />
+                Date inconnue
+              </label>
             </div>
+
+            {!formData.isDateUnknown && (
+              <div className="form-group">
+                <label>Date *</label>
+                <input
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            )}
 
             <div className="form-group">
               <label>Contexte</label>
