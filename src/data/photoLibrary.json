@@ -9,7 +9,8 @@
     "tags": [
       "madeleine",
       "portrait"
-    ]
+    ],
+    "fullPath": "/images/photo1.jpg"
   },
   {
     "id": 2,
@@ -21,7 +22,8 @@
     "tags": [
       "djé",
       "portrait"
-    ]
+    ],
+    "fullPath": "/images/photo2.jpg"
   },
   {
     "id": 3,
@@ -32,7 +34,8 @@
     "date": "2025-04-30",
     "tags": [
       "objet"
-    ]
+    ],
+    "fullPath": "/images/photo3.jpg"
   },
   {
     "id": 4,
@@ -44,7 +47,8 @@
     "tags": [
       "animaux",
       "djé"
-    ]
+    ],
+    "fullPath": "/images/photo4.jpg"
   },
   {
     "id": 5,
@@ -55,18 +59,7 @@
     "date": "2025-04-20",
     "tags": [
       "nature"
-    ]
-  },
-  {
-    "id": 1750260629311,
-    "title": "test",
-    "description": "test",
-    "category": "nous",
-    "file": "Screenshot_16-49-53_1750260629317_861322.png",
-    "date": "unknown",
-    "tags": [
-      "madeleine"
     ],
-    "isDateUnknown": true
+    "fullPath": "/images/photo5.jpg"
   }
 ]
