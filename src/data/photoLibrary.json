@@ -63,19 +63,6 @@
     "fullPath": "/images/photo5.jpg"
   },
   {
-    "id": 1750261799439,
-    "title": "test",
-    "description": "test",
-    "category": "nous",
-    "file": "ya_1750261799480_7voeqs.png",
-    "date": "2025-06-18",
-    "tags": [
-      "objet"
-    ],
-    "fullPath": "/images/ya_1750261799480_7voeqs.png",
-    "isDateUnknown": false
-  },
-  {
     "id": 1750262627880,
     "title": "test2",
     "description": "test2",
