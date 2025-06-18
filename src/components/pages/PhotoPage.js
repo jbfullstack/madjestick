@@ -1,50 +1,42 @@
 // src/components/pages/PhotoPage.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../../styles/PhotoPage.css";
-
-// Import your additional photos here
-// import CeremonyPhoto1 from "../../images/ceremony1.jpg";
-// import CeremonyPhoto2 from "../../images/ceremony2.jpg";
-// ... etc
+import { 
+  loadPhotoLibrary, 
+  getPhotosByCategory, 
+  PHOTO_CATEGORIES, 
+  getCategoryLabel 
+} from "../../utils/photoLoader";
 
 const PhotoPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [photos, setPhotos] = useState([]);
 
-  // Replace these placeholders with your actual photo imports
-  const photoGalleries = {
-    nous: [
-      "https://via.placeholder.com/300x300/ff69b4/ffffff?text=Ceremony+1",
-      "https://via.placeholder.com/300x300/ff1493/ffffff?text=Ceremony+2",
-      "https://via.placeholder.com/300x300/db7093/ffffff?text=Ceremony+3",
-      "https://via.placeholder.com/300x300/ff69b4/ffffff?text=Ceremony+4",
-    ],
-    moments: [
-      "https://via.placeholder.com/300x300/ff69b4/ffffff?text=Reception+1",
-      "https://via.placeholder.com/300x300/ff1493/ffffff?text=Reception+2",
-      "https://via.placeholder.com/300x300/db7093/ffffff?text=Reception+3",
-      "https://via.placeholder.com/300x300/ff69b4/ffffff?text=Reception+4",
-    ],
-    autres: [
-      "https://via.placeholder.com/300x300/ff69b4/ffffff?text=Candid+1",
-      "https://via.placeholder.com/300x300/ff1493/ffffff?text=Candid+2",
-      "https://via.placeholder.com/300x300/db7093/ffffff?text=Candid+3",
-      "https://via.placeholder.com/300x300/ff69b4/ffffff?text=Candid+4",
-    ],
+  useEffect(() => {
+    loadPhotos();
+  }, [selectedCategory]);
+
+  const loadPhotos = () => {
+    if (selectedCategory === "all") {
+      setPhotos(loadPhotoLibrary());
+    } else {
+      setPhotos(getPhotosByCategory(selectedCategory));
+    }
   };
 
   const categories = [
     { id: "all", label: "All Photos" },
-    { id: "nous", label: "Nous" },
-    { id: "moments", label: "Moments" },
-    { id: "autres", label: "Autres" },
+    { id: PHOTO_CATEGORIES.NOUS, label: getCategoryLabel(PHOTO_CATEGORIES.NOUS) },
+    { id: PHOTO_CATEGORIES.MOMENTS, label: getCategoryLabel(PHOTO_CATEGORIES.MOMENTS) },
+    { id: PHOTO_CATEGORIES.AUTRES, label: getCategoryLabel(PHOTO_CATEGORIES.AUTRES) },
   ];
 
-  const getPhotosToShow = () => {
-    if (selectedCategory === "all") {
-      return Object.values(photoGalleries).flat();
-    }
-    return photoGalleries[selectedCategory] || [];
-  };
+  const groupedPhotos = selectedCategory === "all" 
+    ? Object.values(PHOTO_CATEGORIES).reduce((acc, category) => {
+        acc[category] = photos.filter(photo => photo.category === category);
+        return acc;
+      }, {})
+    : { [selectedCategory]: photos };
 
   return (
     <div className="photo-page">
@@ -66,16 +58,20 @@ const PhotoPage = () => {
 
       <div className="photos-container">
         {selectedCategory === "all" ? (
-          Object.entries(photoGalleries).map(([category, photos]) => (
+          Object.entries(groupedPhotos).map(([category, categoryPhotos]) => (
             <div key={category} className="photo-category">
-              <h2>{category.charAt(0).toUpperCase() + category.slice(1)}</h2>
+              <h2>{getCategoryLabel(category)}</h2>
               <div className="images-grid">
-                {photos.map((photo, index) => (
+                {categoryPhotos.map((photo) => (
                   <img
-                    key={index}
-                    src={photo}
-                    alt={`${category} photo ${index + 1}`}
+                    key={photo.id}
+                    src={photo.fullPath}
+                    alt={photo.title}
                     className="photo-gallery"
+                    title={photo.description}
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/300x300/9370db/ffffff?text=No+Image';
+                    }}
                   />
                 ))}
               </div>
@@ -83,12 +79,16 @@ const PhotoPage = () => {
           ))
         ) : (
           <div className="images-grid">
-            {getPhotosToShow().map((photo, index) => (
+            {photos.map((photo) => (
               <img
-                key={index}
-                src={photo}
-                alt={`${selectedCategory} photo ${index + 1}`}
+                key={photo.id}
+                src={photo.fullPath}
+                alt={photo.title}
                 className="photo-gallery"
+                title={photo.description}
+                onError={(e) => {
+                  e.target.src = 'https://via.placeholder.com/300x300/9370db/ffffff?text=No+Image';
+                }}
               />
             ))}
           </div>

@@ -8,6 +8,7 @@ const Navigation = ({ currentPage, setCurrentPage }) => {
     { id: "chrono", label: "Chrono" },
     { id: "photos", label: "Photos" },
     { id: "musiques", label: "Musiques" },
+    { id: "admin", label: "Admin" },
   ];
 
   return (

@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "text": "Tout est entendable si c'est bien argumenté",
+    "author": "Toi",
+    "date": "2025-01-15",
+    "context": "Discussion philosophique un soir d'hiver",
+    "category": "philosophie",
+    "isFavorite": true
+  },
+  {
+    "id": 2,
+    "text": "Vous laisser gagner une bataille pour pouvoir gagner la guerre",
+    "author": "Moi",
+    "date": "2025-04-23",
+    "context": "Stratégie relationnelle",
+    "category": "stratégie",
+    "isFavorite": true
+  },
+  {
+    "id": 3,
+    "text": "La vie c'est aussi d'avancer, sinon ça serait chiant",
+    "author": "Toi",
+    "date": "2025-04-29",
+    "context": "Moment de motivation mutuelle",
+    "category": "motivation",
+    "isFavorite": true
+  },
+  {
+    "id": 4,
+    "text": "Même en Ehpad On n'est pas des yaourts !",
+    "author": "Moi",
+    "date": "2025-02-10",
+    "context": "Discussion sur le vieillissement avec humour",
+    "category": "humour",
+    "isFavorite": false
+  }
+]
