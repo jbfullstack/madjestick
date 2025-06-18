@@ -2,12 +2,11 @@
 import React, { useState, useEffect } from "react";
 import "../../styles/AdminPage.css";
 import { 
-  loadCitationsLibrary, 
   CITATION_CATEGORIES, 
   getCategoryEmoji, 
-  getCategoryLabel,
-  getAllAuthors 
+  getCategoryLabel
 } from "../../utils/citationsLoader";
+import { githubAPI } from "../../lib/githubAPI";
 
 const CitationManager = () => {
   const [citations, setCitations] = useState([]);
@@ -17,6 +16,8 @@ const CitationManager = () => {
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterAuthor, setFilterAuthor] = useState("all");
   const [allAuthors, setAllAuthors] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const [formData, setFormData] = useState({
     id: 0,
@@ -33,16 +34,31 @@ const CitationManager = () => {
     loadData();
   }, []);
 
-  const loadData = () => {
-    // Try to load from localStorage first, then fallback to JSON
-    const savedCitations = localStorage.getItem('citationsLibrary');
-    const citationData = savedCitations ? JSON.parse(savedCitations) : loadCitationsLibrary();
-    
-    setCitations(citationData);
-    
-    // Extract all unique authors
-    const authors = citationData.map(citation => citation.author);
-    setAllAuthors([...new Set(authors)]);
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const citationData = await githubAPI.getCitations();
+      setCitations(citationData);
+      
+      // Extract all unique authors
+      const authors = citationData.map(citation => citation.author);
+      setAllAuthors([...new Set(authors)]);
+    } catch (err) {
+      setError('Erreur lors du chargement des citations: ' + err.message);
+      console.error('Error loading citations:', err);
+      
+      // Fallback to localStorage if GitHub fails
+      const localData = localStorage.getItem('citationsLibrary');
+      if (localData) {
+        const parsedData = JSON.parse(localData);
+        setCitations(parsedData);
+        const authors = parsedData.map(citation => citation.author);
+        setAllAuthors([...new Set(authors)]);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resetForm = () => {
@@ -83,57 +99,101 @@ const CitationManager = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Generate ID for new citations
-    let finalData = { ...formData };
-    if (!finalData.id) {
-      finalData.id = Date.now();
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Prepare data
+      let finalData = { ...formData };
+      if (!finalData.id) {
+        finalData.id = Date.now();
+      }
+      finalData.date = formData.isDateUnknown ? "unknown" : formData.date;
+
+      // Get current citations from GitHub
+      const currentCitations = await githubAPI.getCitations();
+      
+      let updatedCitations;
+      if (isEditing) {
+        updatedCitations = currentCitations.map(citation => 
+          citation.id === finalData.id ? finalData : citation
+        );
+      } else {
+        updatedCitations = [...currentCitations, finalData];
+      }
+
+      // Save to GitHub (triggers Vercel deployment)
+      await githubAPI.updateCitationsFile(updatedCitations);
+      
+      // Also save to localStorage as backup
+      localStorage.setItem('citationsLibrary', JSON.stringify(updatedCitations));
+
+      alert(`Citation "${finalData.text.substring(0, 30)}..." ${isEditing ? 'modifiée' : 'ajoutée'} avec succès! Déploiement en cours...`);
+
+      resetForm();
+      await loadData(); // Reload data
+    } catch (err) {
+      setError('Erreur lors de la sauvegarde: ' + err.message);
+      console.error('Error saving citation:', err);
+      
+      // Fallback to localStorage only
+      try {
+        let finalData = { ...formData };
+        if (!finalData.id) {
+          finalData.id = Date.now();
+        }
+        finalData.date = formData.isDateUnknown ? "unknown" : formData.date;
+
+        const localCitations = JSON.parse(localStorage.getItem('citationsLibrary') || '[]');
+        let updatedCitations;
+        if (isEditing) {
+          updatedCitations = localCitations.map(citation => 
+            citation.id === finalData.id ? finalData : citation
+          );
+        } else {
+          updatedCitations = [...localCitations, finalData];
+        }
+        
+        localStorage.setItem('citationsLibrary', JSON.stringify(updatedCitations));
+        alert('Sauvegarde locale réussie (GitHub indisponible)');
+        resetForm();
+        await loadData();
+      } catch (localErr) {
+        setError('Erreur complète de sauvegarde: ' + localErr.message);
+      }
+    } finally {
+      setLoading(false);
     }
-
-    // Handle unknown date
-    finalData.date = formData.isDateUnknown ? "unknown" : formData.date;
-
-    // Get existing citations from localStorage or use default
-    const existingCitations = JSON.parse(localStorage.getItem('citationsLibrary')) || loadCitationsLibrary();
-    
-    let updatedCitations;
-    if (isEditing) {
-      // Update existing citation
-      updatedCitations = existingCitations.map(citation => 
-        citation.id === finalData.id ? finalData : citation
-      );
-    } else {
-      // Add new citation
-      updatedCitations = [...existingCitations, finalData];
-    }
-
-    // Save to localStorage
-    localStorage.setItem('citationsLibrary', JSON.stringify(updatedCitations));
-
-    console.log("Citation data saved:", finalData);
-    alert(`Citation "${finalData.text.substring(0, 30)}..." ${isEditing ? 'modifiée' : 'ajoutée'} avec succès!`);
-    
-    resetForm();
-    loadData();
   };
 
-  const handleDelete = (citationId) => {
+  const handleDelete = async (citationId) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cette citation ?")) {
-      // Get existing citations from localStorage or use default
-      const existingCitations = JSON.parse(localStorage.getItem('citationsLibrary')) || loadCitationsLibrary();
-      
-      // Remove the citation
-      const updatedCitations = existingCitations.filter(citation => citation.id !== citationId);
-      
-      // Save to localStorage
-      localStorage.setItem('citationsLibrary', JSON.stringify(updatedCitations));
-      
-      console.log("Citation deleted:", citationId);
-      alert("Citation supprimée avec succès!");
-      resetForm();
-      loadData();
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Get current citations from GitHub
+        const currentCitations = await githubAPI.getCitations();
+        const updatedCitations = currentCitations.filter(citation => citation.id !== citationId);
+        
+        // Save to GitHub
+        await githubAPI.updateCitationsFile(updatedCitations);
+        
+        // Also update localStorage
+        localStorage.setItem('citationsLibrary', JSON.stringify(updatedCitations));
+        
+        alert("Citation supprimée avec succès! Déploiement en cours...");
+        resetForm();
+        await loadData();
+      } catch (err) {
+        setError('Erreur lors de la suppression: ' + err.message);
+        console.error('Error deleting citation:', err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -150,10 +210,22 @@ const CitationManager = () => {
     <div className="manager-container">
       <div className="manager-header">
         <h2>Gestion des Citations</h2>
-        <button className="btn-primary" onClick={resetForm}>
+        <button className="btn-primary" onClick={resetForm} disabled={loading}>
           💭 Nouvelle Citation
         </button>
       </div>
+
+      {error && (
+        <div className="message error">
+          {error}
+        </div>
+      )}
+
+      {loading && (
+        <div className="loading">
+          Chargement...
+        </div>
+      )}
 
       {/* Search and Filter */}
       <div className="manager-filters">
@@ -222,6 +294,7 @@ const CitationManager = () => {
                     className="btn-edit"
                     onClick={() => handleEdit(citation)}
                     title="Modifier"
+                    disabled={loading}
                   >
                     ✏️
                   </button>
@@ -229,6 +302,7 @@ const CitationManager = () => {
                     className="btn-delete"
                     onClick={() => handleDelete(citation.id)}
                     title="Supprimer"
+                    disabled={loading}
                   >
                     🗑️
                   </button>
@@ -337,10 +411,10 @@ const CitationManager = () => {
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="btn-primary">
-                {isEditing ? "Mettre à jour" : "Créer"}
+              <button type="submit" className="btn-primary" disabled={loading}>
+                {loading ? 'Sauvegarde...' : (isEditing ? "Mettre à jour" : "Créer")}
               </button>
-              <button type="button" className="btn-secondary" onClick={resetForm}>
+              <button type="button" className="btn-secondary" onClick={resetForm} disabled={loading}>
                 Annuler
               </button>
             </div>

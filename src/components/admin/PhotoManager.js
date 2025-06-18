@@ -2,12 +2,11 @@
 import React, { useState, useEffect } from "react";
 import "../../styles/AdminPage.css";
 import { 
-  loadPhotoLibrary, 
   PHOTO_CATEGORIES, 
   getCategoryEmoji, 
-  getCategoryLabel,
-  getAllTags 
+  getCategoryLabel
 } from "../../utils/photoLoader";
+import { githubAPI } from "../../lib/githubAPI";
 
 const PhotoManager = () => {
   const [photos, setPhotos] = useState([]);
@@ -21,6 +20,8 @@ const PhotoManager = () => {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [newTag, setNewTag] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const [formData, setFormData] = useState({
     id: 0,
@@ -37,26 +38,44 @@ const PhotoManager = () => {
     loadData();
   }, []);
 
-  const loadData = () => {
-    // Try to load from localStorage first, then fallback to JSON
-    const savedPhotos = localStorage.getItem('photosLibrary');
-    const photoData = savedPhotos ? JSON.parse(savedPhotos) : loadPhotoLibrary();
-    
-    setPhotos(photoData);
-    
-    // Extract all unique tags
-    const tags = photoData.reduce((acc, photo) => {
-      if (photo.tags) {
-        return [...acc, ...photo.tags];
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const photoData = await githubAPI.getPhotos();
+      setPhotos(photoData);
+      
+      // Extract all unique tags
+      const tags = photoData.reduce((acc, photo) => {
+        if (photo.tags) {
+          return [...acc, ...photo.tags];
+        }
+        return acc;
+      }, []);
+      setAllTags([...new Set(tags)]);
+      
+      // Load custom categories from localStorage
+      const savedCategories = localStorage.getItem('customPhotoCategories');
+      if (savedCategories) {
+        setCustomCategories(JSON.parse(savedCategories));
       }
-      return acc;
-    }, []);
-    setAllTags([...new Set(tags)]);
-    
-    // Load custom categories from localStorage
-    const savedCategories = localStorage.getItem('customPhotoCategories');
-    if (savedCategories) {
-      setCustomCategories(JSON.parse(savedCategories));
+    } catch (err) {
+      setError('Erreur lors du chargement des photos: ' + err.message);
+      console.error('Error loading photos:', err);
+      
+      // Fallback to localStorage
+      const localData = localStorage.getItem('photosLibrary');
+      if (localData) {
+        const parsedData = JSON.parse(localData);
+        setPhotos(parsedData);
+        const tags = parsedData.reduce((acc, photo) => {
+          if (photo.tags) return [...acc, ...photo.tags];
+          return acc;
+        }, []);
+        setAllTags([...new Set(tags)]);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -145,57 +164,97 @@ const PhotoManager = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Generate ID for new photos
-    let finalData = { ...formData };
-    if (!finalData.id) {
-      finalData.id = Date.now();
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Prepare data
+      let finalData = { ...formData };
+      if (!finalData.id) {
+        finalData.id = Date.now();
+      }
+      finalData.date = formData.isDateUnknown ? "unknown" : formData.date;
+
+      // Get current photos from GitHub
+      const currentPhotos = await githubAPI.getPhotos();
+      
+      let updatedPhotos;
+      if (isEditing) {
+        updatedPhotos = currentPhotos.map(photo => 
+          photo.id === finalData.id ? finalData : photo
+        );
+      } else {
+        updatedPhotos = [...currentPhotos, finalData];
+      }
+
+      // Save to GitHub
+      await githubAPI.updatePhotosFile(updatedPhotos);
+      
+      // Also save to localStorage as backup
+      localStorage.setItem('photosLibrary', JSON.stringify(updatedPhotos));
+
+      alert(`Photo "${finalData.title}" ${isEditing ? 'modifiée' : 'ajoutée'} avec succès! Déploiement en cours...`);
+
+      resetForm();
+      await loadData();
+    } catch (err) {
+      setError('Erreur lors de la sauvegarde: ' + err.message);
+      console.error('Error saving photo:', err);
+      
+      // Fallback to localStorage only
+      try {
+        let finalData = { ...formData };
+        if (!finalData.id) {
+          finalData.id = Date.now();
+        }
+        finalData.date = formData.isDateUnknown ? "unknown" : formData.date;
+
+        const localPhotos = JSON.parse(localStorage.getItem('photosLibrary') || '[]');
+        let updatedPhotos;
+        if (isEditing) {
+          updatedPhotos = localPhotos.map(photo => 
+            photo.id === finalData.id ? finalData : photo
+          );
+        } else {
+          updatedPhotos = [...localPhotos, finalData];
+        }
+        
+        localStorage.setItem('photosLibrary', JSON.stringify(updatedPhotos));
+        alert('Sauvegarde locale réussie (GitHub indisponible)');
+        resetForm();
+        await loadData();
+      } catch (localErr) {
+        setError('Erreur complète de sauvegarde: ' + localErr.message);
+      }
+    } finally {
+      setLoading(false);
     }
-
-    // Handle unknown date
-    finalData.date = formData.isDateUnknown ? "unknown" : formData.date;
-
-    // Get existing photos from localStorage or use default
-    const existingPhotos = JSON.parse(localStorage.getItem('photosLibrary')) || loadPhotoLibrary();
-    
-    let updatedPhotos;
-    if (isEditing) {
-      // Update existing photo
-      updatedPhotos = existingPhotos.map(photo => 
-        photo.id === finalData.id ? finalData : photo
-      );
-    } else {
-      // Add new photo
-      updatedPhotos = [...existingPhotos, finalData];
-    }
-
-    // Save to localStorage
-    localStorage.setItem('photosLibrary', JSON.stringify(updatedPhotos));
-
-    console.log("Photo data saved:", finalData);
-    alert(`Photo "${finalData.title}" ${isEditing ? 'modifiée' : 'ajoutée'} avec succès!`);
-    
-    resetForm();
-    loadData();
   };
 
-  const handleDelete = (photoId) => {
+  const handleDelete = async (photoId) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cette photo ?")) {
-      // Get existing photos from localStorage or use default
-      const existingPhotos = JSON.parse(localStorage.getItem('photosLibrary')) || loadPhotoLibrary();
-      
-      // Remove the photo
-      const updatedPhotos = existingPhotos.filter(photo => photo.id !== photoId);
-      
-      // Save to localStorage
-      localStorage.setItem('photosLibrary', JSON.stringify(updatedPhotos));
-      
-      console.log("Photo deleted:", photoId);
-      alert("Photo supprimée avec succès!");
-      resetForm();
-      loadData();
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const currentPhotos = await githubAPI.getPhotos();
+        const updatedPhotos = currentPhotos.filter(photo => photo.id !== photoId);
+        
+        await githubAPI.updatePhotosFile(updatedPhotos);
+        localStorage.setItem('photosLibrary', JSON.stringify(updatedPhotos));
+        
+        alert("Photo supprimée avec succès! Déploiement en cours...");
+        resetForm();
+        await loadData();
+      } catch (err) {
+        setError('Erreur lors de la suppression: ' + err.message);
+        console.error('Error deleting photo:', err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -221,12 +280,23 @@ const PhotoManager = () => {
     <div className="manager-container">
       <div className="manager-header">
         <h2>Gestion des Photos</h2>
-        <button className="btn-primary" onClick={resetForm}>
+        <button className="btn-primary" onClick={resetForm} disabled={loading}>
           📸 Nouvelle Photo
         </button>
       </div>
 
-      {/* Search and Filter */}
+      {error && (
+        <div className="message error">
+          {error}
+        </div>
+      )}
+
+      {loading && (
+        <div className="loading">
+          Chargement...
+        </div>
+      )}
+
       <div className="manager-filters">
         <input
           type="text"
@@ -250,7 +320,6 @@ const PhotoManager = () => {
       </div>
 
       <div className="manager-content">
-        {/* Photo List */}
         <div className="items-list">
           <h3>Photos ({filteredPhotos.length})</h3>
           <div className="photos-grid">
@@ -258,7 +327,7 @@ const PhotoManager = () => {
               <div key={photo.id} className="photo-item">
                 <div className="photo-preview">
                   <img 
-                    src={photo.fullPath} 
+                    src={`/src/images/${photo.file}`}
                     alt={photo.title}
                     onError={(e) => {
                       e.target.src = 'https://via.placeholder.com/150x150/9370db/ffffff?text=No+Image';
@@ -269,6 +338,7 @@ const PhotoManager = () => {
                       className="btn-edit"
                       onClick={() => handleEdit(photo)}
                       title="Modifier"
+                      disabled={loading}
                     >
                       ✏️
                     </button>
@@ -276,6 +346,7 @@ const PhotoManager = () => {
                       className="btn-delete"
                       onClick={() => handleDelete(photo.id)}
                       title="Supprimer"
+                      disabled={loading}
                     >
                       🗑️
                     </button>
@@ -303,7 +374,6 @@ const PhotoManager = () => {
           </div>
         </div>
 
-        {/* Photo Form */}
         <div className="item-form">
           <h3>{isEditing ? "Modifier la Photo" : "Nouvelle Photo"}</h3>
           <form onSubmit={handleSubmit}>
@@ -469,10 +539,10 @@ const PhotoManager = () => {
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="btn-primary">
-                {isEditing ? "Mettre à jour" : "Créer"}
+              <button type="submit" className="btn-primary" disabled={loading}>
+                {loading ? 'Sauvegarde...' : (isEditing ? "Mettre à jour" : "Créer")}
               </button>
-              <button type="button" className="btn-secondary" onClick={resetForm}>
+              <button type="button" className="btn-secondary" onClick={resetForm} disabled={loading}>
                 Annuler
               </button>
             </div>

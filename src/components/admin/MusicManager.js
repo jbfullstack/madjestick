@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from "react";
 import "../../styles/AdminPage.css";
 import { 
-  loadMusicLibrary, 
   getTypeEmoji, 
   hasAudio, 
   MUSIC_TYPES 
 } from "../../utils/musicLoader";
+import { githubAPI } from "../../lib/githubAPI";
 
 const MusicManager = () => {
   const [musicItems, setMusicItems] = useState([]);
@@ -14,6 +14,8 @@ const MusicManager = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const [formData, setFormData] = useState({
     id: 0,
@@ -30,12 +32,25 @@ const MusicManager = () => {
     loadData();
   }, []);
 
-  const loadData = () => {
-    // Try to load from localStorage first, then fallback to JSON
-    const savedMusic = localStorage.getItem('musicLibrary');
-    const musicData = savedMusic ? JSON.parse(savedMusic) : loadMusicLibrary();
-    
-    setMusicItems(musicData);
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const musicData = await githubAPI.getMusic();
+      setMusicItems(musicData);
+    } catch (err) {
+      setError('Erreur lors du chargement de la musique: ' + err.message);
+      console.error('Error loading music:', err);
+      
+      // Fallback to localStorage
+      const localData = localStorage.getItem('musicLibrary');
+      if (localData) {
+        const parsedData = JSON.parse(localData);
+        setMusicItems(parsedData);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resetForm = () => {
@@ -86,57 +101,97 @@ const MusicManager = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Generate ID for new items
-    let finalData = { ...formData };
-    if (!finalData.id) {
-      finalData.id = Date.now();
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Prepare data
+      let finalData = { ...formData };
+      if (!finalData.id) {
+        finalData.id = Date.now();
+      }
+      finalData.date = formData.isDateUnknown ? "unknown" : formData.date;
+
+      // Get current music from GitHub
+      const currentMusic = await githubAPI.getMusic();
+      
+      let updatedMusic;
+      if (isEditing) {
+        updatedMusic = currentMusic.map(item => 
+          item.id === finalData.id ? finalData : item
+        );
+      } else {
+        updatedMusic = [...currentMusic, finalData];
+      }
+
+      // Save to GitHub
+      await githubAPI.updateMusicFile(updatedMusic);
+      
+      // Also save to localStorage as backup
+      localStorage.setItem('musicLibrary', JSON.stringify(updatedMusic));
+
+      alert(`${finalData.type === MUSIC_TYPES.TEXT ? 'Texte' : 'Musique'} "${finalData.title}" ${isEditing ? 'modifié(e)' : 'ajouté(e)'} avec succès! Déploiement en cours...`);
+
+      resetForm();
+      await loadData();
+    } catch (err) {
+      setError('Erreur lors de la sauvegarde: ' + err.message);
+      console.error('Error saving music:', err);
+      
+      // Fallback to localStorage only
+      try {
+        let finalData = { ...formData };
+        if (!finalData.id) {
+          finalData.id = Date.now();
+        }
+        finalData.date = formData.isDateUnknown ? "unknown" : formData.date;
+
+        const localMusic = JSON.parse(localStorage.getItem('musicLibrary') || '[]');
+        let updatedMusic;
+        if (isEditing) {
+          updatedMusic = localMusic.map(item => 
+            item.id === finalData.id ? finalData : item
+          );
+        } else {
+          updatedMusic = [...localMusic, finalData];
+        }
+        
+        localStorage.setItem('musicLibrary', JSON.stringify(updatedMusic));
+        alert('Sauvegarde locale réussie (GitHub indisponible)');
+        resetForm();
+        await loadData();
+      } catch (localErr) {
+        setError('Erreur complète de sauvegarde: ' + localErr.message);
+      }
+    } finally {
+      setLoading(false);
     }
-
-    // Handle unknown date
-    finalData.date = formData.isDateUnknown ? "unknown" : formData.date;
-
-    // Get existing music from localStorage or use default
-    const existingMusic = JSON.parse(localStorage.getItem('musicLibrary')) || loadMusicLibrary();
-    
-    let updatedMusic;
-    if (isEditing) {
-      // Update existing item
-      updatedMusic = existingMusic.map(item => 
-        item.id === finalData.id ? finalData : item
-      );
-    } else {
-      // Add new item
-      updatedMusic = [...existingMusic, finalData];
-    }
-
-    // Save to localStorage
-    localStorage.setItem('musicLibrary', JSON.stringify(updatedMusic));
-
-    console.log("Music data saved:", finalData);
-    alert(`${finalData.type === MUSIC_TYPES.TEXT ? 'Texte' : 'Musique'} "${finalData.title}" ${isEditing ? 'modifié(e)' : 'ajouté(e)'} avec succès!`);
-    
-    resetForm();
-    loadData();
   };
 
-  const handleDelete = (itemId) => {
+  const handleDelete = async (itemId) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cet élément ?")) {
-      // Get existing music from localStorage or use default
-      const existingMusic = JSON.parse(localStorage.getItem('musicLibrary')) || loadMusicLibrary();
-      
-      // Remove the item
-      const updatedMusic = existingMusic.filter(item => item.id !== itemId);
-      
-      // Save to localStorage
-      localStorage.setItem('musicLibrary', JSON.stringify(updatedMusic));
-      
-      console.log("Music item deleted:", itemId);
-      alert("Élément supprimé avec succès!");
-      resetForm();
-      loadData();
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const currentMusic = await githubAPI.getMusic();
+        const updatedMusic = currentMusic.filter(item => item.id !== itemId);
+        
+        await githubAPI.updateMusicFile(updatedMusic);
+        localStorage.setItem('musicLibrary', JSON.stringify(updatedMusic));
+        
+        alert("Élément supprimé avec succès! Déploiement en cours...");
+        resetForm();
+        await loadData();
+      } catch (err) {
+        setError('Erreur lors de la suppression: ' + err.message);
+        console.error('Error deleting music:', err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -152,12 +207,23 @@ const MusicManager = () => {
     <div className="manager-container">
       <div className="manager-header">
         <h2>Gestion des Musiques et Textes</h2>
-        <button className="btn-primary" onClick={resetForm}>
+        <button className="btn-primary" onClick={resetForm} disabled={loading}>
           🎵 Nouveau Contenu
         </button>
       </div>
 
-      {/* Search and Filter */}
+      {error && (
+        <div className="message error">
+          {error}
+        </div>
+      )}
+
+      {loading && (
+        <div className="loading">
+          Chargement...
+        </div>
+      )}
+
       <div className="manager-filters">
         <input
           type="text"
@@ -181,7 +247,6 @@ const MusicManager = () => {
       </div>
 
       <div className="manager-content">
-        {/* Music List */}
         <div className="items-list">
           <h3>Contenu Musical ({filteredItems.length})</h3>
           <div className="music-list">
@@ -215,6 +280,7 @@ const MusicManager = () => {
                     className="btn-edit"
                     onClick={() => handleEdit(item)}
                     title="Modifier"
+                    disabled={loading}
                   >
                     ✏️
                   </button>
@@ -222,6 +288,7 @@ const MusicManager = () => {
                     className="btn-delete"
                     onClick={() => handleDelete(item.id)}
                     title="Supprimer"
+                    disabled={loading}
                   >
                     🗑️
                   </button>
@@ -231,7 +298,6 @@ const MusicManager = () => {
           </div>
         </div>
 
-        {/* Music Form */}
         <div className="item-form">
           <h3>{isEditing ? "Modifier le Contenu" : "Nouveau Contenu"}</h3>
           <form onSubmit={handleSubmit}>
@@ -291,6 +357,30 @@ const MusicManager = () => {
             )}
 
             <div className="form-group">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="isDateUnknown"
+                  checked={formData.isDateUnknown}
+                  onChange={handleInputChange}
+                />
+                Date inconnue
+              </label>
+            </div>
+
+            {!formData.isDateUnknown && (
+              <div className="form-group">
+                <label>Date</label>
+                <input
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleInputChange}
+                />
+              </div>
+            )}
+
+            <div className="form-group">
               <label>Paroles/Texte</label>
               <textarea
                 name="lyrics"
@@ -302,10 +392,10 @@ const MusicManager = () => {
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="btn-primary">
-                {isEditing ? "Mettre à jour" : "Créer"}
+              <button type="submit" className="btn-primary" disabled={loading}>
+                {loading ? 'Sauvegarde...' : (isEditing ? "Mettre à jour" : "Créer")}
               </button>
-              <button type="button" className="btn-secondary" onClick={resetForm}>
+              <button type="button" className="btn-secondary" onClick={resetForm} disabled={loading}>
                 Annuler
               </button>
             </div>

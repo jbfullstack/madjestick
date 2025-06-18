@@ -5,45 +5,63 @@ import {
   PHOTO_CATEGORIES, 
   getCategoryLabel 
 } from "../../utils/photoLoader";
+import { githubAPI } from "../../lib/githubAPI";
 
 const PhotoPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [photos, setPhotos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadPhotos();
   }, [selectedCategory]);
 
-  const loadPhotos = () => {
-    // Try to load from localStorage first, then fallback to photo loader
-    const savedPhotos = localStorage.getItem('photosLibrary');
-    let allPhotos;
-    
-    if (savedPhotos) {
-      allPhotos = JSON.parse(savedPhotos);
-    } else {
-      // Fallback to default photos
-      allPhotos = [
-        {
-          id: 1,
-          title: "Photo 1",
-          category: "nous",
-          file: "photo1.jpg",
-          description: "Photo par défaut"
+  const loadPhotos = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Try to load from GitHub first
+      let allPhotos;
+      try {
+        allPhotos = await githubAPI.getPhotos();
+      } catch (githubError) {
+        console.warn('GitHub API failed, falling back to localStorage:', githubError);
+        // Fallback to localStorage
+        const localData = localStorage.getItem('photosLibrary');
+        if (localData) {
+          allPhotos = JSON.parse(localData);
+        } else {
+          // Final fallback to default photos
+          allPhotos = [
+            {
+              id: 1,
+              title: "Photo 1",
+              category: "nous",
+              file: "photo1.jpg",
+              description: "Photo par défaut"
+            }
+          ];
         }
-      ];
-    }
+      }
 
-    // Add full path for images
-    allPhotos = allPhotos.map(photo => ({
-      ...photo,
-      fullPath: `/src/images/${photo.file}` // You might need to adjust this path
-    }));
+      // Add full path for images
+      allPhotos = allPhotos.map(photo => ({
+        ...photo,
+        fullPath: `/src/images/${photo.file}` // Adjust path as needed
+      }));
 
-    if (selectedCategory === "all") {
-      setPhotos(allPhotos);
-    } else {
-      setPhotos(allPhotos.filter(photo => photo.category === selectedCategory));
+      if (selectedCategory === "all") {
+        setPhotos(allPhotos);
+      } else {
+        setPhotos(allPhotos.filter(photo => photo.category === selectedCategory));
+      }
+    } catch (err) {
+      setError('Erreur lors du chargement des photos: ' + err.message);
+      console.error('Error loading photos:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,6 +78,24 @@ const PhotoPage = () => {
         return acc;
       }, {})
     : { [selectedCategory]: photos };
+
+  if (loading) {
+    return (
+      <div className="photo-page">
+        <h1>Madjestick Photo Gallery</h1>
+        <div className="loading">Chargement des photos...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="photo-page">
+        <h1>Madjestick Photo Gallery</h1>
+        <div className="message error">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="photo-page">
