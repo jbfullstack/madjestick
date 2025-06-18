@@ -3,6 +3,9 @@ const GITHUB_TOKEN = process.env.REACT_APP_GITHUB_TOKEN;
 const REPO_OWNER = process.env.REACT_APP_GITHUB_OWNER;
 const REPO_NAME = process.env.REACT_APP_GITHUB_REPO;
 
+console.log('Owner:', process.env.REACT_APP_GITHUB_OWNER);
+console.log('Repo:', process.env.REACT_APP_GITHUB_REPO);
+
 // Helper function pour décoder base64 de manière sécurisée
 const safeBase64Decode = (encodedContent) => {
   try {
