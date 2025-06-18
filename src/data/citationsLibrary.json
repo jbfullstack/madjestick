@@ -34,5 +34,15 @@
     "context": "Discussion sur le vieillissement avec humour",
     "category": "humour",
     "isFavorite": false
+  },
+  {
+    "id": 1750241356352,
+    "text": "On a encore eu de la chance !",
+    "author": "Monster Munch",
+    "date": "unknown",
+    "context": "",
+    "category": "quotidien",
+    "isFavorite": true,
+    "isDateUnknown": true
   }
 ]
