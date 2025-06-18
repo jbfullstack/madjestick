@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "text": "Tout est entendable si c'est bien argumentÃ©",
+    "text": "Tout est entendable si c'est bien argumentÃÂ©",
     "author": "Toi",
     "date": "2025-01-15",
     "context": "Discussion philosophique un soir d'hiver",
@@ -13,13 +13,13 @@
     "text": "Vous laisser gagner une bataille pour pouvoir gagner la guerre",
     "author": "Moi",
     "date": "2025-04-23",
-    "context": "StratÃ©gie relationnelle",
-    "category": "stratÃ©gie",
+    "context": "StratÃÂ©gie relationnelle",
+    "category": "stratÃÂ©gie",
     "isFavorite": true
   },
   {
     "id": 3,
-    "text": "La vie c'est aussi d'avancer, sinon Ã§a serait chiant",
+    "text": "La vie c'est aussi d'avancer, sinon ÃÂ§a serait chiant",
     "author": "Toi",
     "date": "2025-04-29",
     "context": "Moment de motivation mutuelle",
@@ -28,21 +28,11 @@
   },
   {
     "id": 4,
-    "text": "MÃªme en Ehpad On n'est pas des yaourts !",
+    "text": "MÃÂªme en Ehpad On n'est pas des yaourts !",
     "author": "Moi",
     "date": "2025-02-10",
     "context": "Discussion sur le vieillissement avec humour",
     "category": "humour",
     "isFavorite": false
-  },
-  {
-    "id": 1750238668474,
-    "text": "test",
-    "author": "test",
-    "date": "unknown",
-    "context": "",
-    "category": "quotidien",
-    "isFavorite": false,
-    "isDateUnknown": true
   }
 ]
