@@ -1,1 +1,1 @@
-# Wedding counter
+# Counter, photos etc 
