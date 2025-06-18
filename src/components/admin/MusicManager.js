@@ -319,11 +319,12 @@ const MusicManager = () => {
                 onChange={handleInputChange}
                 required
               >
-                {Object.values(MUSIC_TYPES).map(type => (
-                  <option key={type} value={type}>
-                    {getTypeEmoji(type)} {type === MUSIC_TYPES.AUDIO ? 'Musique avec fichier audio' : 'Texte seulement'}
-                  </option>
-                ))}
+                <option value={MUSIC_TYPES.AUDIO}>
+                  {getTypeEmoji(MUSIC_TYPES.AUDIO)} Musique avec fichier audio
+                </option>
+                <option value={MUSIC_TYPES.TEXT}>
+                  {getTypeEmoji(MUSIC_TYPES.TEXT)} Texte seulement
+                </option>
               </select>
             </div>
 
