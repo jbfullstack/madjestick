@@ -49,7 +49,7 @@ const PhotoPage = () => {
       // Add full path for images
       allPhotos = allPhotos.map(photo => ({
         ...photo,
-        fullPath: `/src/images/${photo.file}` // Adjust path as needed
+        fullPath: `/images/${photo.file}` // Chemin public/ au lieu de src/
       }));
 
       if (selectedCategory === "all") {

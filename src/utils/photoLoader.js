@@ -42,7 +42,7 @@ export const loadPhotoLibrary = () => {
     // Add full image path to each photo
     return photoLibrary.map(photo => ({
       ...photo,
-      fullPath: require(`../images/${photo.file}`)
+      fullPath: `/images/${photo.file}` // Chemin public/ pour Vercel
     }));
   } catch (error) {
     console.error('Error loading photo library:', error);

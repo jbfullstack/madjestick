@@ -248,14 +248,15 @@ const MusiquePage = () => {
           )}
 
           {/* Audio element only for songs with files */}
+         {/* Audio element only for songs with files */}
           {selectedSong.file && hasAudio(selectedSong.type) && (
             <audio
               ref={audioRef}
-              src={selectedSong.file}
+              src={`/sounds/${selectedSong.file}`} 
               preload="metadata"
               onError={(e) => {
                 console.error("Audio error:", e);
-                console.log("Trying to load:", selectedSong.file);
+                console.log("Trying to load:", `/sounds/${selectedSong.file}`);
               }}
             />
           )}

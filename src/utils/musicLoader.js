@@ -31,7 +31,9 @@ export const loadMusicLibrary = () => {
     if (Array.isArray(musicLibrary)) {
       return musicLibrary.map(item => ({
         ...item,
-        file: item.file || item.fileName // Support both formats
+        file: item.file || item.fileName, // Support both formats
+        // Ajouter le chemin complet pour les fichiers audio
+        fullPath: item.file ? `/sounds/${item.file}` : null
       }));
     }
     
@@ -39,7 +41,8 @@ export const loadMusicLibrary = () => {
     if (musicLibrary.songs && Array.isArray(musicLibrary.songs)) {
       return musicLibrary.songs.map(item => ({
         ...item,
-        file: item.file || item.fileName // Support both formats
+        file: item.file || item.fileName,
+        fullPath: item.file ? `/sounds/${item.file}` : null
       }));
     }
     

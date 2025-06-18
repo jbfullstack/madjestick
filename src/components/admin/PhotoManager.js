@@ -346,7 +346,7 @@ const PhotoManager = () => {
               <div key={photo.id} className="photo-item">
                 <div className="photo-preview">
                   <img 
-                    src={`/src/images/${photo.file}`}
+                    src={`/images/${photo.file}`}
                     alt={photo.title}
                     onError={(e) => {
                       e.target.src = 'https://via.placeholder.com/150x150/9370db/ffffff?text=No+Image';
