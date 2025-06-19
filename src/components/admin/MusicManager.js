@@ -146,10 +146,7 @@ const MusicManager = () => {
       }
       finalData.date = formData.isDateUnknown ? "unknown" : formData.date;
 
-      // Convertir les vraies nouvelles lignes en \n pour le stockage JSON
-      if (finalData.lyrics) {
-        finalData.lyrics = finalData.lyrics.replace(/\n/g, "\\n");
-      }
+      // JSON.stringify gère automatiquement les nouvelles lignes
 
       // Upload du fichier audio si nécessaire
       if (selectedFile && hasAudio(finalData.type)) {
@@ -398,7 +395,7 @@ const MusicManager = () => {
                     <div className="music-lyrics-preview">
                       <strong>Paroles:</strong>
                       <p>
-                        {item.lyrics.replace(/\\n/g, " ").substring(0, 100)}...
+                        {item.lyrics.replace(/\n/g, " ").substring(0, 100)}...
                       </p>
                     </div>
                   )}

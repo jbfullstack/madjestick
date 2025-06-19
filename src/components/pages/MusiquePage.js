@@ -330,7 +330,6 @@ const MusiquePage = () => {
           <h3>Paroles</h3>
           <div className="lyrics-text">
             {(selectedSong.lyrics || "Pas de paroles disponibles")
-              .replace(/\\n/g, "\n") // Convertir \n en vraies nouvelles lignes
               .split("\n")
               .map((line, index) => (
                 <p key={index}>{line}</p>
