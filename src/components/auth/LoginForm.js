@@ -1,28 +1,28 @@
 // src/components/auth/LoginForm.js
-import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import '../../styles/LoginForm.css';
+import React, { useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import "../../styles/LoginForm.css";
 
 const LoginForm = () => {
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setError("");
 
     // Simulate a small delay for better UX
     setTimeout(() => {
       const success = login(password);
-      
+
       if (!success) {
-        setError('Mot de passe incorrect');
-        setPassword('');
+        setError("Oupsy, t'es qui toi ?");
+        setPassword("");
       }
-      
+
       setIsLoading(false);
     }, 500);
   };
@@ -34,7 +34,7 @@ const LoginForm = () => {
           <h2>🔐 Accès Administration</h2>
           <p>Entrez le mot de passe pour accéder à la Madjestitration</p>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
             <label htmlFor="password">Mot de passe</label>
@@ -49,15 +49,11 @@ const LoginForm = () => {
               autoFocus
             />
           </div>
-          
-          {error && (
-            <div className="error-message">
-              ❌ {error}
-            </div>
-          )}
-          
-          <button 
-            type="submit" 
+
+          {error && <div className="error-message">❌ {error}</div>}
+
+          <button
+            type="submit"
             className="login-button"
             disabled={isLoading || !password.trim()}
           >
@@ -67,13 +63,13 @@ const LoginForm = () => {
                 Vérification...
               </>
             ) : (
-              '🚪 Se connecter'
+              "🚪 Se connecter"
             )}
           </button>
         </form>
-        
+
         <div className="login-footer">
-          <p>💡 Accès réservé aux administrateurs</p>
+          <p>💡 Accès réservé aux administrateurs et autres Madeleine</p>
         </div>
       </div>
     </div>

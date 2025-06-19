@@ -392,13 +392,13 @@ const PhotoManager = () => {
       <div className="manager-header">
         <h2>Gestion des Photos</h2>
         <div className="header-buttons">
-          <button
+          {/* <button
             className="btn-secondary"
             onClick={handleFixMissingPaths}
             disabled={loading}
           >
             🔧 Corriger chemins manquants
-          </button>
+          </button> */}
           <button
             className="btn-primary"
             onClick={resetForm}
