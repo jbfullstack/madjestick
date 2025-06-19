@@ -323,3 +323,254 @@
     padding: 10px;
   }
 }
+
+/* === LIGHTBOX STYLES === */
+/* À ajouter à la fin de votre PhotoPage.css */
+
+.lightbox-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  cursor: pointer;
+  backdrop-filter: blur(5px);
+  animation: lightboxFadeIn 0.3s ease-out;
+}
+
+@keyframes lightboxFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.lightbox-container {
+  position: relative;
+  max-width: 95vw;
+  max-height: 95vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: default;
+  animation: lightboxSlideIn 0.4s ease-out;
+}
+
+@keyframes lightboxSlideIn {
+  from {
+    transform: scale(0.8) translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.lightbox-close {
+  position: absolute;
+  top: -50px;
+  right: 0;
+  background: linear-gradient(135deg, #ff6b6b, #ff4757);
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.5em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(255, 75, 87, 0.4);
+  font-family: "Dancing Script", cursive;
+  font-weight: bold;
+  z-index: 1001;
+}
+
+.lightbox-close:hover {
+  background: linear-gradient(135deg, #ff4757, #ff3742);
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(255, 75, 87, 0.6);
+}
+
+.lightbox-image {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border: 3px solid rgba(147, 112, 219, 0.8);
+  transition: transform 0.3s ease;
+}
+
+.lightbox-image:hover {
+  transform: scale(1.02);
+}
+
+.lightbox-info {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.97),
+    rgba(221, 160, 221, 0.2),
+    rgba(173, 216, 230, 0.15)
+  );
+  border-radius: 15px;
+  padding: 20px;
+  margin-top: 20px;
+  max-width: 600px;
+  text-align: center;
+  backdrop-filter: blur(12px);
+  border: 2px solid rgba(186, 85, 211, 0.4);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.lightbox-info h3 {
+  color: #9370db;
+  font-size: 1.8em;
+  margin: 0 0 15px 0;
+  font-family: "Dancing Script", cursive;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+  font-weight: bold;
+}
+
+.lightbox-info p {
+  color: #4169e1;
+  font-size: 1.2em;
+  margin: 0 0 15px 0;
+  font-family: "Dancing Script", cursive;
+  font-style: italic;
+  line-height: 1.4;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  font-weight: 600;
+}
+
+.lightbox-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.lightbox-date {
+  color: #663399;
+  font-size: 1em;
+  font-family: "Dancing Script", cursive;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.lightbox-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.lightbox-tag {
+  background: linear-gradient(135deg, #ba55d3, #9370db);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 0.9em;
+  font-family: "Dancing Script", cursive;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive pour la lightbox */
+@media (max-width: 768px) {
+  .lightbox-container {
+    max-width: 98vw;
+    max-height: 98vh;
+  }
+
+  .lightbox-close {
+    top: -40px;
+    right: 10px;
+    width: 35px;
+    height: 35px;
+    font-size: 1.3em;
+  }
+
+  .lightbox-image {
+    max-height: 60vh;
+    border-width: 2px;
+  }
+
+  .lightbox-info {
+    padding: 20px;
+    margin-top: 15px;
+    max-width: 90vw;
+  }
+
+  .lightbox-info h3 {
+    font-size: 1.8em;
+  }
+
+  .lightbox-info p {
+    font-size: 1.2em;
+  }
+
+  .lightbox-date {
+    font-size: 1.1em;
+  }
+
+  .lightbox-tags {
+    gap: 8px;
+  }
+
+  .lightbox-tag {
+    padding: 5px 12px;
+    font-size: 0.9em;
+  }
+}
+
+@media (max-width: 480px) {
+  .lightbox-close {
+    top: -35px;
+    right: 5px;
+    width: 30px;
+    height: 30px;
+    font-size: 1.1em;
+  }
+
+  .lightbox-image {
+    max-height: 50vh;
+  }
+
+  .lightbox-info {
+    padding: 18px;
+    margin-top: 12px;
+  }
+
+  .lightbox-info h3 {
+    font-size: 1.6em;
+  }
+
+  .lightbox-info p {
+    font-size: 1.1em;
+  }
+
+  .lightbox-meta {
+    gap: 12px;
+  }
+
+  .lightbox-date {
+    font-size: 1em;
+  }
+
+  .lightbox-tag {
+    padding: 4px 10px;
+    font-size: 0.85em;
+  }
+}

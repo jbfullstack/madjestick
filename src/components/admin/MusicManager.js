@@ -573,11 +573,16 @@ const MusicManager = () => {
 
             <div className="form-actions">
               <button type="submit" className="btn-primary" disabled={loading}>
-                {loading
-                  ? "Sauvegarde..."
-                  : isEditing
-                  ? "Mettre à jour"
-                  : "Créer"}
+                {loading ? (
+                  <>
+                    <span className="spinner"></span>
+                    Sauvegarde...
+                  </>
+                ) : isEditing ? (
+                  "Mettre à jour"
+                ) : (
+                  "Créer"
+                )}
               </button>
               <button
                 type="button"

@@ -1,15 +1,15 @@
 // src/components/admin/PhotoManager.js
 import React, { useState, useEffect } from "react";
 import "../../styles/AdminPage.css";
-import { 
-  loadPhotoLibrary, 
-  PHOTO_CATEGORIES, 
-  getCategoryEmoji, 
+import {
+  loadPhotoLibrary,
+  PHOTO_CATEGORIES,
+  getCategoryEmoji,
   getCategoryLabel,
   getAllTags,
   getAllPhotoCategories,
   addPhotoCategory,
-  removePhotoCategory
+  removePhotoCategory,
 } from "../../utils/photoLoader";
 import { githubAPI } from "../../lib/githubAPI";
 
@@ -39,7 +39,7 @@ const PhotoManager = () => {
     file: "",
     date: "",
     tags: [],
-    isDateUnknown: false
+    isDateUnknown: false,
   });
 
   useEffect(() => {
@@ -50,18 +50,18 @@ const PhotoManager = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Charger les photos depuis GitHub
       const photoData = await githubAPI.getPhotos();
       setPhotos(Array.isArray(photoData) ? photoData : []);
-      
+
       // Charger les autres données localement (tags, catégories, etc.)
       setAllTags(getAllTags());
       setAllCategories(getAllPhotoCategories());
     } catch (err) {
-      setError('Erreur lors du chargement des photos: ' + err.message);
-      console.error('Error loading photos:', err);
-      
+      setError("Erreur lors du chargement des photos: " + err.message);
+      console.error("Error loading photos:", err);
+
       // Fallback vers les données locales
       const photoData = loadPhotoLibrary();
       setPhotos(photoData);
@@ -79,9 +79,9 @@ const PhotoManager = () => {
       description: "",
       category: PHOTO_CATEGORIES.NOUS,
       file: "",
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().split("T")[0],
       tags: [],
-      isDateUnknown: false
+      isDateUnknown: false,
     });
     setSelectedPhoto(null);
     setIsEditing(false);
@@ -99,7 +99,7 @@ const PhotoManager = () => {
       file: photo.file,
       date: photo.date === "unknown" ? "" : photo.date,
       tags: photo.tags || [],
-      isDateUnknown: photo.date === "unknown"
+      isDateUnknown: photo.date === "unknown",
     });
     setSelectedPhoto(photo);
     setIsEditing(true);
@@ -109,9 +109,9 @@ const PhotoManager = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
@@ -119,30 +119,34 @@ const PhotoManager = () => {
     const file = e.target.files[0];
     if (file) {
       // Vérifier le type de fichier
-      if (!file.type.startsWith('image/')) {
-        alert('Veuillez sélectionner un fichier image valide');
-        e.target.value = '';
+      if (!file.type.startsWith("image/")) {
+        alert("Veuillez sélectionner un fichier image valide");
+        e.target.value = "";
         return;
       }
 
       // Vérifier la taille (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert('Le fichier est trop volumineux (max 5MB)');
-        e.target.value = '';
+        alert("Le fichier est trop volumineux (max 5MB)");
+        e.target.value = "";
         return;
       }
 
       setSelectedFile(file);
-      setUploadProgress(`Image sélectionnée: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      setUploadProgress(
+        `Image sélectionnée: ${file.name} (${(file.size / 1024 / 1024).toFixed(
+          2
+        )}MB)`
+      );
     }
   };
 
   const handleTagToggle = (tag) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      tags: prev.tags.includes(tag) 
-        ? prev.tags.filter(t => t !== tag)
-        : [...prev.tags, tag]
+      tags: prev.tags.includes(tag)
+        ? prev.tags.filter((t) => t !== tag)
+        : [...prev.tags, tag],
     }));
   };
 
@@ -160,17 +164,17 @@ const PhotoManager = () => {
       try {
         const newCategory = addPhotoCategory({
           name: newCategoryName.trim(),
-          emoji: newCategoryEmoji
+          emoji: newCategoryEmoji,
         });
-        
+
         setNewCategoryName("");
         setNewCategoryEmoji("📷");
         setShowNewCategoryForm(false);
-        setFormData(prev => ({ ...prev, category: newCategory.id }));
-        
+        setFormData((prev) => ({ ...prev, category: newCategory.id }));
+
         // Reload data to show new category
         loadData();
-        
+
         alert(`Catégorie "${newCategory.label}" ajoutée avec succès !`);
       } catch (error) {
         alert(error.message);
@@ -180,7 +184,7 @@ const PhotoManager = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       setLoading(true);
       setError(null);
@@ -199,16 +203,23 @@ const PhotoManager = () => {
       if (selectedFile) {
         setUploadProgress("Upload de l'image...");
         try {
-          const uploadResult = await githubAPI.uploadFile(selectedFile, 'public/images');
+          const uploadResult = await githubAPI.uploadFile(
+            selectedFile,
+            "public/images"
+          );
           finalData.file = uploadResult.fileName;
           // Stocker le chemin complet pour l'affichage
           finalData.fullPath = `/images/${uploadResult.fileName}`;
-          
-          console.log(`Photo uploadée: ${uploadResult.fileName}, fullPath: ${finalData.fullPath}`);
-          
+
+          console.log(
+            `Photo uploadée: ${uploadResult.fileName}, fullPath: ${finalData.fullPath}`
+          );
+
           // Informer l'utilisateur si le nom a été modifié
           if (uploadResult.wasSanitized) {
-            setUploadProgress(`Image uploadée avec succès ! (Nom sanitisé: "${uploadResult.originalName}" → "${uploadResult.fileName}")`);
+            setUploadProgress(
+              `Image uploadée avec succès ! (Nom sanitisé: "${uploadResult.originalName}" → "${uploadResult.fileName}")`
+            );
           } else {
             setUploadProgress("Image uploadée avec succès !");
           }
@@ -216,7 +227,7 @@ const PhotoManager = () => {
           throw new Error(`Erreur upload image: ${uploadErr.message}`);
         }
       } else if (!isEditing && !finalData.file) {
-        throw new Error('Une image est requise');
+        throw new Error("Une image est requise");
       } else if (isEditing && !selectedFile) {
         // Si on édite sans changer l'image, s'assurer que fullPath existe
         if (!finalData.fullPath && finalData.file) {
@@ -228,16 +239,18 @@ const PhotoManager = () => {
       // S'assurer que TOUTES les photos ont un fullPath avant sauvegarde
       if (finalData.file && !finalData.fullPath) {
         finalData.fullPath = `/images/${finalData.file}`;
-        console.log(`fullPath ajouté en dernier recours: ${finalData.fullPath}`);
+        console.log(
+          `fullPath ajouté en dernier recours: ${finalData.fullPath}`
+        );
       }
 
       // Get current photos from GitHub
       setUploadProgress("Mise à jour de la bibliothèque...");
       const currentPhotos = await githubAPI.getPhotos();
-      
+
       let updatedPhotos;
       if (isEditing) {
-        updatedPhotos = currentPhotos.map(photo => 
+        updatedPhotos = currentPhotos.map((photo) =>
           photo.id === finalData.id ? finalData : photo
         );
       } else {
@@ -249,16 +262,22 @@ const PhotoManager = () => {
       await githubAPI.updatePhotosFile(updatedPhotos);
 
       setUploadProgress("Terminé !");
-      alert(`Photo "${finalData.title}" ${isEditing ? 'modifiée' : 'ajoutée'} avec succès!`);
+      alert(
+        `Photo "${finalData.title}" ${
+          isEditing ? "modifiée" : "ajoutée"
+        } avec succès!`
+      );
 
       resetForm();
       await loadData();
     } catch (err) {
-      setError('Erreur lors de la sauvegarde: ' + err.message);
-      console.error('Error saving photo:', err);
-      
+      setError("Erreur lors de la sauvegarde: " + err.message);
+      console.error("Error saving photo:", err);
+
       // Note: Pas de fallback localStorage pour les photos car l'image ne serait pas accessible
-      alert('Erreur lors de la sauvegarde. Vérifiez votre connexion et réessayez.');
+      alert(
+        "Erreur lors de la sauvegarde. Vérifiez votre connexion et réessayez."
+      );
     } finally {
       setLoading(false);
       setUploadProgress("");
@@ -270,33 +289,85 @@ const PhotoManager = () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         const currentPhotos = await githubAPI.getPhotos();
-        const photoToDelete = currentPhotos.find(photo => photo.id === photoId);
-        
+        const photoToDelete = currentPhotos.find(
+          (photo) => photo.id === photoId
+        );
+
         // Supprimer le fichier image si il existe
         if (photoToDelete && photoToDelete.file) {
           try {
             await githubAPI.deleteFile(`public/images/${photoToDelete.file}`);
             console.log(`Fichier image ${photoToDelete.file} supprimé`);
           } catch (deleteFileErr) {
-            console.warn(`Erreur suppression fichier image: ${deleteFileErr.message}`);
+            console.warn(
+              `Erreur suppression fichier image: ${deleteFileErr.message}`
+            );
             // On continue même si la suppression du fichier échoue
           }
         }
-        
-        const updatedPhotos = currentPhotos.filter(photo => photo.id !== photoId);
-        
+
+        const updatedPhotos = currentPhotos.filter(
+          (photo) => photo.id !== photoId
+        );
+
         await githubAPI.updatePhotosFile(updatedPhotos);
-        
+
         alert("Photo supprimée avec succès!");
         resetForm();
         await loadData();
       } catch (err) {
-        setError('Erreur lors de la suppression: ' + err.message);
-        console.error('Error deleting photo:', err);
+        setError("Erreur lors de la suppression: " + err.message);
+        console.error("Error deleting photo:", err);
       } finally {
         setLoading(false);
+      }
+    }
+  };
+
+  const handleFixMissingPaths = async () => {
+    if (
+      window.confirm(
+        "Cette opération va ajouter les chemins manquants pour toutes les photos. Continuer ?"
+      )
+    ) {
+      try {
+        setLoading(true);
+        setError(null);
+        setUploadProgress("Correction des chemins manquants...");
+
+        const currentPhotos = await githubAPI.getPhotos();
+        let hasChanges = false;
+
+        const updatedPhotos = currentPhotos.map((photo) => {
+          if (!photo.fullPath && photo.file) {
+            photo.fullPath = `/images/${photo.file}`;
+            hasChanges = true;
+            console.log(
+              `fullPath ajouté pour ${photo.title}: ${photo.fullPath}`
+            );
+          }
+          return photo;
+        });
+
+        if (hasChanges) {
+          await githubAPI.updatePhotosFile(updatedPhotos);
+          setUploadProgress("Chemins corrigés avec succès !");
+          alert(
+            "Correction terminée ! Les photos devraient maintenant s'afficher."
+          );
+          await loadData();
+        } else {
+          setUploadProgress("Aucun chemin à corriger.");
+          alert("Toutes les photos ont déjà leurs chemins corrects.");
+        }
+      } catch (err) {
+        setError("Erreur lors de la correction: " + err.message);
+        console.error("Error fixing paths:", err);
+      } finally {
+        setLoading(false);
+        setUploadProgress("");
       }
     }
   };
@@ -305,10 +376,12 @@ const PhotoManager = () => {
     return allCategories;
   };
 
-  const filteredPhotos = photos.filter(photo => {
-    const matchesSearch = photo.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         photo.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === "all" || photo.category === filterCategory;
+  const filteredPhotos = photos.filter((photo) => {
+    const matchesSearch =
+      photo.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      photo.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      filterCategory === "all" || photo.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -318,28 +391,37 @@ const PhotoManager = () => {
     <div className="manager-container">
       <div className="manager-header">
         <h2>Gestion des Photos</h2>
-        <button className="btn-primary" onClick={resetForm} disabled={loading}>
-          📸 Nouvelle Photo
-        </button>
+        <div className="header-buttons">
+          <button
+            className="btn-secondary"
+            onClick={handleFixMissingPaths}
+            disabled={loading}
+          >
+            🔧 Corriger chemins manquants
+          </button>
+          <button
+            className="btn-primary"
+            onClick={resetForm}
+            disabled={loading}
+          >
+            📸 Nouvelle Photo
+          </button>
+        </div>
       </div>
 
-      {error && (
-        <div className="message error">
-          {error}
-        </div>
-      )}
+      {error && <div className="message error">{error}</div>}
 
       {loading && (
         <div className="loading">
           Chargement...
-          {uploadProgress && <div className="upload-progress">{uploadProgress}</div>}
+          {uploadProgress && (
+            <div className="upload-progress">{uploadProgress}</div>
+          )}
         </div>
       )}
 
       {uploadProgress && !loading && (
-        <div className="message info">
-          {uploadProgress}
-        </div>
+        <div className="message info">{uploadProgress}</div>
       )}
 
       {/* Search and Filter */}
@@ -357,7 +439,7 @@ const PhotoManager = () => {
           className="filter-select"
         >
           <option value="all">Toutes les catégories</option>
-          {currentCategories.map(category => (
+          {currentCategories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.emoji} {category.label}
             </option>
@@ -373,15 +455,16 @@ const PhotoManager = () => {
             {filteredPhotos.map((photo) => (
               <div key={photo.id} className="photo-item">
                 <div className="photo-preview">
-                  <img 
+                  <img
                     src={photo.fullPath || `/images/${photo.file}`}
                     alt={photo.title}
                     onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/150x150/9370db/ffffff?text=No+Image';
+                      e.target.src =
+                        "https://via.placeholder.com/150x150/9370db/ffffff?text=No+Image";
                     }}
                   />
                   <div className="photo-overlay">
-                    <button 
+                    <button
                       className="btn-edit"
                       onClick={() => handleEdit(photo)}
                       title="Modifier"
@@ -389,7 +472,7 @@ const PhotoManager = () => {
                     >
                       ✏️
                     </button>
-                    <button 
+                    <button
                       className="btn-delete"
                       onClick={() => handleDelete(photo.id)}
                       title="Supprimer"
@@ -402,8 +485,10 @@ const PhotoManager = () => {
                 <div className="photo-info">
                   <h4>{photo.title}</h4>
                   <p className="photo-category">
-                    {currentCategories.find(cat => cat.id === photo.category)?.emoji || "📷"} 
-                    {" "}{currentCategories.find(cat => cat.id === photo.category)?.label || photo.category}
+                    {currentCategories.find((cat) => cat.id === photo.category)
+                      ?.emoji || "📷"}{" "}
+                    {currentCategories.find((cat) => cat.id === photo.category)
+                      ?.label || photo.category}
                   </p>
                   <p className="photo-date">
                     {photo.date === "unknown" ? "Date inconnue" : photo.date}
@@ -411,7 +496,9 @@ const PhotoManager = () => {
                   {photo.tags && photo.tags.length > 0 && (
                     <div className="photo-tags">
                       {photo.tags.map((tag, index) => (
-                        <span key={index} className="tag">#{tag}</span>
+                        <span key={index} className="tag">
+                          #{tag}
+                        </span>
                       ))}
                     </div>
                   )}
@@ -460,7 +547,7 @@ const PhotoManager = () => {
                   required
                   disabled={loading}
                 >
-                  {currentCategories.map(category => (
+                  {currentCategories.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.emoji} {category.label}
                     </option>
@@ -475,7 +562,7 @@ const PhotoManager = () => {
                   ➕
                 </button>
               </div>
-              
+
               {showNewCategoryForm && (
                 <div className="new-category-form">
                   <input
@@ -491,13 +578,23 @@ const PhotoManager = () => {
                     onChange={(e) => setNewCategoryEmoji(e.target.value)}
                     placeholder="📷"
                     maxLength="2"
-                    style={{ width: '60px' }}
+                    style={{ width: "60px" }}
                     disabled={loading}
                   />
-                  <button type="button" onClick={handleAddNewCategory} className="btn-primary" disabled={loading}>
+                  <button
+                    type="button"
+                    onClick={handleAddNewCategory}
+                    className="btn-primary"
+                    disabled={loading}
+                  >
                     Ajouter
                   </button>
-                  <button type="button" onClick={() => setShowNewCategoryForm(false)} className="btn-secondary" disabled={loading}>
+                  <button
+                    type="button"
+                    onClick={() => setShowNewCategoryForm(false)}
+                    className="btn-secondary"
+                    disabled={loading}
+                  >
                     Annuler
                   </button>
                 </div>
@@ -569,20 +666,22 @@ const PhotoManager = () => {
                     </span>
                   ))}
                 </div>
-                
+
                 <button
                   type="button"
                   className="btn-toggle-tags"
                   onClick={() => setShowTagDropdown(!showTagDropdown)}
                   disabled={loading}
                 >
-                  {showTagDropdown ? "Masquer les tags" : "Sélectionner des tags"}
+                  {showTagDropdown
+                    ? "Masquer les tags"
+                    : "Sélectionner des tags"}
                 </button>
 
                 {showTagDropdown && (
                   <div className="tags-dropdown">
                     <div className="existing-tags">
-                      {allTags.map(tag => (
+                      {allTags.map((tag) => (
                         <label key={tag} className="tag-option">
                           <input
                             type="checkbox"
@@ -594,17 +693,25 @@ const PhotoManager = () => {
                         </label>
                       ))}
                     </div>
-                    
+
                     <div className="new-tag-form">
                       <input
                         type="text"
                         value={newTag}
                         onChange={(e) => setNewTag(e.target.value)}
                         placeholder="Nouveau tag"
-                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddNewTag())}
+                        onKeyPress={(e) =>
+                          e.key === "Enter" &&
+                          (e.preventDefault(), handleAddNewTag())
+                        }
                         disabled={loading}
                       />
-                      <button type="button" onClick={handleAddNewTag} className="btn-primary" disabled={loading}>
+                      <button
+                        type="button"
+                        onClick={handleAddNewTag}
+                        className="btn-primary"
+                        disabled={loading}
+                      >
                         Ajouter
                       </button>
                     </div>
@@ -615,9 +722,23 @@ const PhotoManager = () => {
 
             <div className="form-actions">
               <button type="submit" className="btn-primary" disabled={loading}>
-                {loading ? 'Sauvegarde...' : (isEditing ? "Mettre à jour" : "Créer")}
+                {loading ? (
+                  <>
+                    <span className="spinner"></span>
+                    Sauvegarde...
+                  </>
+                ) : isEditing ? (
+                  "Mettre à jour"
+                ) : (
+                  "Créer"
+                )}
               </button>
-              <button type="button" className="btn-secondary" onClick={resetForm} disabled={loading}>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={resetForm}
+                disabled={loading}
+              >
                 Annuler
               </button>
             </div>
