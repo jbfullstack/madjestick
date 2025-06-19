@@ -1,12 +1,8 @@
 // src/components/pages/MusiquePage.js
 import React, { useState, useRef, useEffect } from "react";
 import "../../styles/MusiquePage.css";
-import {
-  loadMusicLibrary,
-  getTypeEmoji,
-  hasAudio,
-  MUSIC_TYPES,
-} from "../../utils/musicLoader";
+import { getTypeEmoji, hasAudio, MUSIC_TYPES } from "../../utils/musicLoader";
+import { githubAPI } from "../../lib/githubAPI";
 
 const MusiquePage = () => {
   const [currentSong, setCurrentSong] = useState(0);
@@ -14,13 +10,57 @@ const MusiquePage = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [musicLibrary, setMusicLibrary] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const audioRef = useRef(null);
 
-  // Charger the music library au montage du composant
+  // Charger la music library au montage du composant
   useEffect(() => {
-    const library = loadMusicLibrary();
-    setMusicLibrary(library);
+    loadMusicLibrary();
   }, []);
+
+  const loadMusicLibrary = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Charger depuis GitHub
+      const allMusic = await githubAPI.getMusic();
+
+      // Filtrer seulement les éléments disponibles pour le public
+      const availableMusic = allMusic.filter(
+        (item) => item.isAvailable !== false
+      );
+
+      setMusicLibrary(availableMusic);
+
+      console.log(
+        `Chargé ${availableMusic.length} éléments disponibles sur ${allMusic.length} total`
+      );
+    } catch (err) {
+      setError("Erreur lors du chargement de la musique");
+      console.error("Error loading music:", err);
+
+      // Fallback vers localStorage
+      const localData = localStorage.getItem("musicLibrary");
+      if (localData) {
+        try {
+          const parsedData = JSON.parse(localData);
+          const availableMusic = parsedData.filter(
+            (item) => item.isAvailable !== false
+          );
+          setMusicLibrary(availableMusic);
+        } catch (parseError) {
+          console.error("Error parsing local music data:", parseError);
+          setMusicLibrary([]);
+        }
+      } else {
+        setMusicLibrary([]);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const selectedSong = musicLibrary[currentSong] || {};
 
@@ -101,12 +141,37 @@ const MusiquePage = () => {
   };
 
   // Afficher un message de chargement si la librairie n'est pas encore chargée
-  if (musicLibrary.length === 0) {
+  if (loading) {
     return (
       <div className="musique-page">
         <h1>Musiques et Textes</h1>
         <div className="music-player">
           <p>Chargement de la librairie musicale...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="musique-page">
+        <h1>Musiques et Textes</h1>
+        <div className="music-player">
+          <p style={{ color: "#c53030" }}>{error}</p>
+          <button onClick={loadMusicLibrary} className="retry-button">
+            Réessayer
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (musicLibrary.length === 0) {
+    return (
+      <div className="musique-page">
+        <h1>Musiques et Textes</h1>
+        <div className="music-player">
+          <p>Aucun contenu musical disponible pour le moment.</p>
         </div>
       </div>
     );
@@ -248,11 +313,10 @@ const MusiquePage = () => {
           )}
 
           {/* Audio element only for songs with files */}
-         {/* Audio element only for songs with files */}
           {selectedSong.file && hasAudio(selectedSong.type) && (
             <audio
               ref={audioRef}
-              src={`/sounds/${selectedSong.file}`} 
+              src={`/sounds/${selectedSong.file}`}
               preload="metadata"
               onError={(e) => {
                 console.error("Audio error:", e);

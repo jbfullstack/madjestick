@@ -1,11 +1,7 @@
 // src/components/admin/MusicManager.js
 import React, { useState, useEffect } from "react";
 import "../../styles/AdminPage.css";
-import { 
-  getTypeEmoji, 
-  hasAudio, 
-  MUSIC_TYPES 
-} from "../../utils/musicLoader";
+import { getTypeEmoji, hasAudio, MUSIC_TYPES } from "../../utils/musicLoader";
 import { githubAPI } from "../../lib/githubAPI";
 
 const MusicManager = () => {
@@ -14,6 +10,7 @@ const MusicManager = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
+  const [filterAvailability, setFilterAvailability] = useState("all");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [uploadProgress, setUploadProgress] = useState("");
@@ -27,7 +24,8 @@ const MusicManager = () => {
     file: "",
     lyrics: "",
     date: "",
-    isDateUnknown: false
+    isDateUnknown: false,
+    isAvailable: true, // Nouveau champ pour la disponibilité
   });
 
   useEffect(() => {
@@ -42,17 +40,17 @@ const MusicManager = () => {
       // S'assurer que musicData est un tableau
       setMusicItems(Array.isArray(musicData) ? musicData : []);
     } catch (err) {
-      setError('Erreur lors du chargement de la musique: ' + err.message);
-      console.error('Error loading music:', err);
-      
+      setError("Erreur lors du chargement de la musique: " + err.message);
+      console.error("Error loading music:", err);
+
       // Fallback to localStorage
-      const localData = localStorage.getItem('musicLibrary');
+      const localData = localStorage.getItem("musicLibrary");
       if (localData) {
         try {
           const parsedData = JSON.parse(localData);
           setMusicItems(Array.isArray(parsedData) ? parsedData : []);
         } catch (parseError) {
-          console.error('Error parsing local music data:', parseError);
+          console.error("Error parsing local music data:", parseError);
           setMusicItems([]);
         }
       } else {
@@ -71,8 +69,9 @@ const MusicManager = () => {
       type: MUSIC_TYPES.AUDIO,
       file: "",
       lyrics: "",
-      date: new Date().toISOString().split('T')[0],
-      isDateUnknown: false
+      date: new Date().toISOString().split("T")[0],
+      isDateUnknown: false,
+      isAvailable: true, // Par défaut disponible
     });
     setSelectedItem(null);
     setIsEditing(false);
@@ -88,8 +87,9 @@ const MusicManager = () => {
       type: item.type,
       file: item.file || "",
       lyrics: item.lyrics || "",
-      date: item.date === "unknown" ? "" : (item.date || ""),
-      isDateUnknown: item.date === "unknown"
+      date: item.date === "unknown" ? "" : item.date || "",
+      isDateUnknown: item.date === "unknown",
+      isAvailable: item.isAvailable !== undefined ? item.isAvailable : true, // Compatibilité ancien format
     });
     setSelectedItem(item);
     setIsEditing(true);
@@ -99,9 +99,9 @@ const MusicManager = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
@@ -109,27 +109,31 @@ const MusicManager = () => {
     const file = e.target.files[0];
     if (file) {
       // Vérifier le type de fichier
-      if (!file.type.startsWith('audio/')) {
-        alert('Veuillez sélectionner un fichier audio valide');
-        e.target.value = '';
+      if (!file.type.startsWith("audio/")) {
+        alert("Veuillez sélectionner un fichier audio valide");
+        e.target.value = "";
         return;
       }
 
       // Vérifier la taille (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
-        alert('Le fichier est trop volumineux (max 10MB)');
-        e.target.value = '';
+        alert("Le fichier est trop volumineux (max 10MB)");
+        e.target.value = "";
         return;
       }
 
       setSelectedFile(file);
-      setUploadProgress(`Fichier sélectionné: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      setUploadProgress(
+        `Fichier sélectionné: ${file.name} (${(file.size / 1024 / 1024).toFixed(
+          2
+        )}MB)`
+      );
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       setLoading(true);
       setError(null);
@@ -146,12 +150,17 @@ const MusicManager = () => {
       if (selectedFile && hasAudio(finalData.type)) {
         setUploadProgress("Upload du fichier audio...");
         try {
-          const uploadResult = await githubAPI.uploadFile(selectedFile, 'public/sounds');
+          const uploadResult = await githubAPI.uploadFile(
+            selectedFile,
+            "public/sounds"
+          );
           finalData.file = uploadResult.fileName;
-          
+
           // Informer l'utilisateur si le nom a été modifié
           if (uploadResult.wasSanitized) {
-            setUploadProgress(`Fichier audio uploadé avec succès ! (Nom sanitisé: "${uploadResult.originalName}" → "${uploadResult.fileName}")`);
+            setUploadProgress(
+              `Fichier audio uploadé avec succès ! (Nom sanitisé: "${uploadResult.originalName}" → "${uploadResult.fileName}")`
+            );
           } else {
             setUploadProgress("Fichier audio uploadé avec succès !");
           }
@@ -159,16 +168,16 @@ const MusicManager = () => {
           throw new Error(`Erreur upload audio: ${uploadErr.message}`);
         }
       } else if (!isEditing && hasAudio(finalData.type) && !finalData.file) {
-        throw new Error('Un fichier audio est requis pour ce type de contenu');
+        throw new Error("Un fichier audio est requis pour ce type de contenu");
       }
 
       // Get current music from GitHub
       setUploadProgress("Mise à jour de la bibliothèque...");
       const currentMusic = await githubAPI.getMusic();
-      
+
       let updatedMusic;
       if (isEditing) {
-        updatedMusic = currentMusic.map(item => 
+        updatedMusic = currentMusic.map((item) =>
           item.id === finalData.id ? finalData : item
         );
       } else {
@@ -178,19 +187,25 @@ const MusicManager = () => {
       // Save to GitHub
       setUploadProgress("Sauvegarde sur GitHub...");
       await githubAPI.updateMusicFile(updatedMusic);
-      
+
       // Also save to localStorage as backup
-      localStorage.setItem('musicLibrary', JSON.stringify(updatedMusic));
+      localStorage.setItem("musicLibrary", JSON.stringify(updatedMusic));
 
       setUploadProgress("Terminé !");
-      alert(`${finalData.type === MUSIC_TYPES.TEXT ? 'Texte' : 'Musique'} "${finalData.title}" ${isEditing ? 'modifié(e)' : 'ajouté(e)'} avec succès! Déploiement en cours...`);
+      alert(
+        `${finalData.type === MUSIC_TYPES.TEXT ? "Texte" : "Musique"} "${
+          finalData.title
+        }" ${
+          isEditing ? "modifié(e)" : "ajouté(e)"
+        } avec succès! Déploiement en cours...`
+      );
 
       resetForm();
       await loadData();
     } catch (err) {
-      setError('Erreur lors de la sauvegarde: ' + err.message);
-      console.error('Error saving music:', err);
-      
+      setError("Erreur lors de la sauvegarde: " + err.message);
+      console.error("Error saving music:", err);
+
       // Fallback to localStorage only
       try {
         setUploadProgress("Sauvegarde locale de secours...");
@@ -199,28 +214,32 @@ const MusicManager = () => {
           finalData.id = Date.now();
         }
         finalData.date = formData.isDateUnknown ? "unknown" : formData.date;
-        
+
         // Si on avait un fichier sélectionné, on garde le nom original comme fallback
         if (selectedFile && hasAudio(finalData.type)) {
           finalData.file = selectedFile.name;
         }
 
-        const localMusic = JSON.parse(localStorage.getItem('musicLibrary') || '[]');
+        const localMusic = JSON.parse(
+          localStorage.getItem("musicLibrary") || "[]"
+        );
         let updatedMusic;
         if (isEditing) {
-          updatedMusic = localMusic.map(item => 
+          updatedMusic = localMusic.map((item) =>
             item.id === finalData.id ? finalData : item
           );
         } else {
           updatedMusic = [...localMusic, finalData];
         }
-        
-        localStorage.setItem('musicLibrary', JSON.stringify(updatedMusic));
-        alert('Sauvegarde locale réussie (GitHub indisponible - le fichier ne sera pas uploadé)');
+
+        localStorage.setItem("musicLibrary", JSON.stringify(updatedMusic));
+        alert(
+          "Sauvegarde locale réussie (GitHub indisponible - le fichier ne sera pas uploadé)"
+        );
         resetForm();
         await loadData();
       } catch (localErr) {
-        setError('Erreur complète de sauvegarde: ' + localErr.message);
+        setError("Erreur complète de sauvegarde: " + localErr.message);
       }
     } finally {
       setLoading(false);
@@ -233,45 +252,52 @@ const MusicManager = () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         const currentMusic = await githubAPI.getMusic();
-        const itemToDelete = currentMusic.find(item => item.id === itemId);
-        
+        const itemToDelete = currentMusic.find((item) => item.id === itemId);
+
         // Supprimer le fichier audio si il existe
         if (itemToDelete && itemToDelete.file && hasAudio(itemToDelete.type)) {
           try {
             await githubAPI.deleteFile(`public/sounds/${itemToDelete.file}`);
             console.log(`Fichier audio ${itemToDelete.file} supprimé`);
           } catch (deleteFileErr) {
-            console.warn(`Erreur suppression fichier audio: ${deleteFileErr.message}`);
+            console.warn(
+              `Erreur suppression fichier audio: ${deleteFileErr.message}`
+            );
             // On continue même si la suppression du fichier échoue
           }
         }
-        
-        const updatedMusic = currentMusic.filter(item => item.id !== itemId);
-        
+
+        const updatedMusic = currentMusic.filter((item) => item.id !== itemId);
+
         await githubAPI.updateMusicFile(updatedMusic);
-        localStorage.setItem('musicLibrary', JSON.stringify(updatedMusic));
-        
+        localStorage.setItem("musicLibrary", JSON.stringify(updatedMusic));
+
         alert("Élément supprimé avec succès! Déploiement en cours...");
         resetForm();
         await loadData();
       } catch (err) {
-        setError('Erreur lors de la suppression: ' + err.message);
-        console.error('Error deleting music:', err);
+        setError("Erreur lors de la suppression: " + err.message);
+        console.error("Error deleting music:", err);
       } finally {
         setLoading(false);
       }
     }
   };
 
-  const filteredItems = Array.isArray(musicItems) 
-    ? musicItems.filter(item => {
-        const matchesSearch = item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                             item.artist?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                             item.lyrics?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredItems = Array.isArray(musicItems)
+    ? musicItems.filter((item) => {
+        const matchesSearch =
+          item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.artist?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.lyrics?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesType = filterType === "all" || item.type === filterType;
-        return matchesSearch && matchesType;
+        const matchesAvailability =
+          filterAvailability === "all" ||
+          (filterAvailability === "available" && item.isAvailable !== false) ||
+          (filterAvailability === "unavailable" && item.isAvailable === false);
+        return matchesSearch && matchesType && matchesAvailability;
       })
     : [];
 
@@ -284,23 +310,19 @@ const MusicManager = () => {
         </button>
       </div>
 
-      {error && (
-        <div className="message error">
-          {error}
-        </div>
-      )}
+      {error && <div className="message error">{error}</div>}
 
       {loading && (
         <div className="loading">
           Chargement...
-          {uploadProgress && <div className="upload-progress">{uploadProgress}</div>}
+          {uploadProgress && (
+            <div className="upload-progress">{uploadProgress}</div>
+          )}
         </div>
       )}
 
       {uploadProgress && !loading && (
-        <div className="message info">
-          {uploadProgress}
-        </div>
+        <div className="message info">{uploadProgress}</div>
       )}
 
       <div className="manager-filters">
@@ -317,11 +339,21 @@ const MusicManager = () => {
           className="filter-select"
         >
           <option value="all">Tous les types</option>
-          {Object.values(MUSIC_TYPES).map(type => (
+          {Object.values(MUSIC_TYPES).map((type) => (
             <option key={type} value={type}>
-              {getTypeEmoji(type)} {type === MUSIC_TYPES.AUDIO ? 'Musique' : 'Texte'}
+              {getTypeEmoji(type)}{" "}
+              {type === MUSIC_TYPES.AUDIO ? "Musique" : "Texte"}
             </option>
           ))}
+        </select>
+        <select
+          value={filterAvailability}
+          onChange={(e) => setFilterAvailability(e.target.value)}
+          className="filter-select"
+        >
+          <option value="all">Tous les statuts</option>
+          <option value="available">👁️ Visibles</option>
+          <option value="unavailable">🙈 Masqués</option>
         </select>
       </div>
 
@@ -330,12 +362,22 @@ const MusicManager = () => {
           <h3>Contenu Musical ({filteredItems.length})</h3>
           <div className="music-list">
             {filteredItems.map((item) => (
-              <div key={item.id} className="music-item">
+              <div
+                key={item.id}
+                className={`music-item ${
+                  item.isAvailable === false ? "unavailable" : ""
+                }`}
+              >
                 <div className="music-content">
                   <div className="music-header">
-                    <h4>{item.title}</h4>
+                    <div className="title-with-status">
+                      <h4>
+                        {item.isAvailable === false ? "🙈" : "👁️"} {item.title}
+                      </h4>
+                    </div>
                     <span className="music-type">
-                      {getTypeEmoji(item.type)} {item.type === MUSIC_TYPES.AUDIO ? 'Musique' : 'Texte'}
+                      {getTypeEmoji(item.type)}{" "}
+                      {item.type === MUSIC_TYPES.AUDIO ? "Musique" : "Texte"}
                     </span>
                   </div>
                   <p className="music-artist">par {item.artist}</p>
@@ -353,9 +395,14 @@ const MusicManager = () => {
                       <p>{item.lyrics.substring(0, 100)}...</p>
                     </div>
                   )}
+                  {item.isAvailable === false && (
+                    <div className="unavailable-notice">
+                      <span>⚠️ Masqué du public</span>
+                    </div>
+                  )}
                 </div>
                 <div className="music-actions">
-                  <button 
+                  <button
                     className="btn-edit"
                     onClick={() => handleEdit(item)}
                     title="Modifier"
@@ -363,7 +410,7 @@ const MusicManager = () => {
                   >
                     ✏️
                   </button>
-                  <button 
+                  <button
                     className="btn-delete"
                     onClick={() => handleDelete(item.id)}
                     title="Supprimer"
@@ -426,7 +473,9 @@ const MusicManager = () => {
 
             {hasAudio(formData.type) && (
               <div className="form-group">
-                <label>Fichier Audio {formData.type === MUSIC_TYPES.AUDIO ? '*' : ''}</label>
+                <label>
+                  Fichier Audio {formData.type === MUSIC_TYPES.AUDIO ? "*" : ""}
+                </label>
                 <input
                   type="file"
                   accept="audio/*"
@@ -438,7 +487,9 @@ const MusicManager = () => {
                   <p className="file-info">Fichier actuel: {formData.file}</p>
                 )}
                 {selectedFile && (
-                  <p className="file-info">Nouveau fichier: {selectedFile.name}</p>
+                  <p className="file-info">
+                    Nouveau fichier: {selectedFile.name}
+                  </p>
                 )}
                 <small className="form-hint">
                   Formats supportés: MP3, WAV, FLAC, OGG (max 10MB)
@@ -484,11 +535,56 @@ const MusicManager = () => {
               />
             </div>
 
+            <div className="form-group availability-section">
+              <label className="availability-label">Visibilité</label>
+              <div className="availability-toggle">
+                <label className="toggle-option">
+                  <input
+                    type="radio"
+                    name="isAvailable"
+                    value="true"
+                    checked={formData.isAvailable === true}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, isAvailable: true }))
+                    }
+                    disabled={loading}
+                  />
+                  <span className="toggle-button-simple">Visible</span>
+                </label>
+                <label className="toggle-option">
+                  <input
+                    type="radio"
+                    name="isAvailable"
+                    value="false"
+                    checked={formData.isAvailable === false}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, isAvailable: false }))
+                    }
+                    disabled={loading}
+                  />
+                  <span className="toggle-button-simple">Invisible</span>
+                </label>
+              </div>
+              <small className="form-hint">
+                Invisible = masqué sur la page Musiques publique (pour préparer
+                du contenu)
+              </small>
+            </div>
+
             <div className="form-actions">
               <button type="submit" className="btn-primary" disabled={loading}>
-                {loading ? 'Sauvegarde...' : (isEditing ? "Mettre à jour" : "Créer")}
+                {loading
+                  ? "Sauvegarde..."
+                  : isEditing
+                  ? "Mettre à jour"
+                  : "Créer"}
               </button>
-              <button type="button" className="btn-secondary" onClick={resetForm} disabled={loading}>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={resetForm}
+                disabled={loading}
+              >
                 Annuler
               </button>
             </div>

@@ -2,7 +2,7 @@
   {
     "id": 1,
     "text": "Tout est entendable si c'est bien argumenté",
-    "author": "Toi",
+    "author": "Madeleine",
     "date": "2025-01-15",
     "context": "Discussion philosophique un soir d'hiver",
     "category": "philosophie",
@@ -11,7 +11,7 @@
   {
     "id": 2,
     "text": "Vous laisser gagner une bataille pour pouvoir gagner la guerre",
-    "author": "Moi",
+    "author": "Madeleine",
     "date": "2025-04-23",
     "context": "Stratégie relationnelle",
     "category": "stratégie",
@@ -19,8 +19,8 @@
   },
   {
     "id": 3,
-    "text": "La vie c'est aussi d'avancer, sinon ÃÂ§a serait chiant",
-    "author": "Toi",
+    "text": "La vie c'est aussi d'avancer, sinon ça serait chiant",
+    "author": "Madeleine",
     "date": "2025-04-29",
     "context": "Moment de motivation mutuelle",
     "category": "motivation",
@@ -29,7 +29,7 @@
   {
     "id": 4,
     "text": "Même en Ehpad On n'est pas des yaourts !",
-    "author": "Moi",
+    "author": "Madeleine",
     "date": "2025-02-10",
     "context": "Discussion sur le vieillissement avec humour",
     "category": "humour",

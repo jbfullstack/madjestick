@@ -332,7 +332,11 @@
   position: absolute;
   top: 0;
   right: 0;
-  background: linear-gradient(135deg, rgba(147, 112, 219, 0.8), rgba(65, 105, 225, 0.8));
+  background: linear-gradient(
+    135deg,
+    rgba(147, 112, 219, 0.8),
+    rgba(65, 105, 225, 0.8)
+  );
   padding: 5px;
   border-radius: 0 0 0 15px;
   opacity: 0;
@@ -836,8 +840,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Empty States */
@@ -1138,5 +1146,198 @@
 
   .tags-dropdown {
     padding: 10px;
+  }
+
+  .music-item.unavailable {
+    opacity: 0.85;
+    border-left: 4px solid #ffc107;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 248, 220, 0.9),
+      rgba(255, 235, 180, 0.3)
+    );
+  }
+
+  .title-with-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .title-with-status h4 {
+    margin: 0;
+    color: #9370db;
+    font-size: 1.2em;
+  }
+
+  .visibility-status {
+    font-size: 1.2em;
+    margin-right: 4px;
+  }
+}
+
+/* === AJOUTS POUR LA VISIBILITÉ DES MUSIQUES === */
+/* À ajouter à la fin de votre AdminPage.css */
+
+/* Styles pour la disponibilité - Liste des musiques */
+.music-item.unavailable {
+  opacity: 0.85;
+  border-left: 4px solid #ffc107;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 248, 220, 0.9),
+    rgba(255, 235, 180, 0.3)
+  );
+}
+
+.title-with-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title-with-status h4 {
+  margin: 0;
+  color: #9370db;
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.visibility-status {
+  font-size: 1.2em;
+  margin-right: 4px;
+}
+
+.unavailable-notice {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 243, 205, 0.9),
+    rgba(255, 230, 167, 0.7)
+  );
+  border: 1px solid #ffc107;
+  border-radius: 10px;
+  font-size: 0.85em;
+  color: #856404;
+  font-weight: 600;
+  font-family: "Dancing Script", cursive;
+}
+
+/* Section de disponibilité dans le formulaire */
+.availability-section {
+  border: 2px solid rgba(255, 193, 7, 0.3);
+  border-radius: 15px;
+  padding: 20px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 248, 220, 0.8),
+    rgba(255, 235, 180, 0.2)
+  );
+  margin-bottom: 20px;
+}
+
+.availability-label {
+  font-weight: 600;
+  color: #9370db;
+  margin-bottom: 15px;
+  display: block;
+  font-size: 1.1em;
+  font-family: "Dancing Script", cursive;
+}
+
+.availability-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.toggle-option {
+  cursor: pointer;
+  width: fit-content;
+}
+
+.toggle-option input[type="radio"] {
+  display: none;
+}
+
+.toggle-button-simple {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 8px 16px;
+  border: 2px solid rgba(186, 85, 211, 0.3);
+  border-radius: 15px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(221, 160, 221, 0.1)
+  );
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-family: "Dancing Script", cursive;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  font-size: 1em;
+  color: #9370db;
+  width: fit-content;
+  min-width: 120px;
+}
+
+.toggle-option input[type="radio"]:checked + .toggle-button-simple {
+  border-color: #9370db;
+  background: linear-gradient(135deg, #9370db, #ba55d3);
+  color: white;
+  transform: scale(1.02);
+  box-shadow: 0 6px 12px rgba(147, 112, 219, 0.4);
+}
+
+.toggle-option:hover .toggle-button-simple {
+  border-color: #ba55d3;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(221, 160, 221, 0.2)
+  );
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(147, 112, 219, 0.2);
+}
+
+/* Responsive pour les nouveaux éléments */
+@media (max-width: 768px) {
+  .availability-toggle {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .toggle-button-simple {
+    padding: 10px 14px;
+  }
+
+  .unavailable-notice {
+    font-size: 0.8em;
+  }
+}
+
+@media (max-width: 480px) {
+  .availability-section {
+    padding: 15px;
+  }
+
+  .title-with-status {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .title-with-status h4 {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .visibility-status {
+    font-size: 1em;
   }
 }
