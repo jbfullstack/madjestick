@@ -329,11 +329,13 @@ const MusiquePage = () => {
         <div className="lyrics">
           <h3>Paroles</h3>
           <div className="lyrics-text">
-            {(selectedSong.lyrics || "Pas de paroles disponibles")
-              .split("\n")
-              .map((line, index) => (
-                <p key={index}>{line}</p>
-              ))}
+            {selectedSong.lyrics ? (
+              selectedSong.lyrics
+                .split("\n")
+                .map((line, index) => <p key={index}>{line || "\u00A0"}</p>)
+            ) : (
+              <p>Pas de paroles disponibles</p>
+            )}
           </div>
         </div>
       </div>

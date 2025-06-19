@@ -448,11 +448,13 @@
   }
 
   .lyrics-text {
-    max-height: 200px;
-    padding: 10px;
+    white-space: pre-line; /* Respecte les sauts de ligne */
+    line-height: 1.6;
+    text-align: left;
   }
 
   .lyrics-text p {
-    font-size: 1em;
+    margin: 0.5em 0;
+    min-height: 1.2em; /* Assure que les lignes vides prennent de l'espace */
   }
 }
