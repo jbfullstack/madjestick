@@ -10,12 +10,13 @@
   },
   {
     "id": 2,
-    "text": "Vous laisser gagner une bataille pour pouvoir gagner la guerre",
+    "text": "Vous laissez gagner une bataille pour pouvoir gagner la guerre",
     "author": "Madeleine",
     "date": "2025-04-23",
     "context": "Stratégie relationnelle",
     "category": "stratégie",
-    "isFavorite": true
+    "isFavorite": true,
+    "isDateUnknown": false
   },
   {
     "id": 3,
@@ -47,7 +48,7 @@
   },
   {
     "id": 1750596419925,
-    "text": "On a encore eu de la chance ! ",
+    "text": "On a encore eu de la chance !",
     "author": "Djé",
     "date": "unknown",
     "context": "",
