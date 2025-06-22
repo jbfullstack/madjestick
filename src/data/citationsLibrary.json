@@ -44,5 +44,15 @@
     "category": "quotidien",
     "isFavorite": true,
     "isDateUnknown": true
+  },
+  {
+    "id": 1750596419925,
+    "text": "On a encore eu de la chance ! ",
+    "author": "Djé",
+    "date": "unknown",
+    "context": "",
+    "category": "quotidien",
+    "isFavorite": true,
+    "isDateUnknown": true
   }
 ]
