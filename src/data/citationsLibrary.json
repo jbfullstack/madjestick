@@ -55,5 +55,15 @@
     "category": "quotidien",
     "isFavorite": true,
     "isDateUnknown": true
+  },
+  {
+    "id": 1751360004168,
+    "text": "on est toujours plus beau quand on sourit",
+    "author": "Madeleine",
+    "date": "2025-07-01",
+    "context": "Vision madelienne",
+    "category": "philosophie",
+    "isFavorite": false,
+    "isDateUnknown": false
   }
 ]
