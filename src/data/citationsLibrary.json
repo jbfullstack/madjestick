@@ -65,5 +65,15 @@
     "category": "philosophie",
     "isFavorite": false,
     "isDateUnknown": false
+  },
+  {
+    "id": 1751701337651,
+    "text": "Tous ceux que l’on croise nous apporte de la joie… soit en arrivant, soit parce qu’ils s’en vont ",
+    "author": "Monster Munch",
+    "date": "2025-06-28",
+    "context": "Citation améliorée de l’accrobranche ",
+    "category": "quotidien",
+    "isFavorite": false,
+    "isDateUnknown": false
   }
 ]
