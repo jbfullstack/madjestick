@@ -78,11 +78,21 @@
   },
   {
     "id": 1756041354706,
-    "text": "Excusez moi d’être pardon ",
+    "text": "Excusez moi d’être pardon",
     "author": "Djé",
     "date": "2022-08-19",
-    "context": "Djé bourré qui faisait le malin ",
+    "context": "Djé bourré qui faisait le malin",
     "category": "humour",
+    "isFavorite": false,
+    "isDateUnknown": false
+  },
+  {
+    "id": 1756041445900,
+    "text": "Ce n’est pas de la rigolade, c’est un sourire qui explose ",
+    "author": "Madeleine",
+    "date": "2025-08-24",
+    "context": "Camping dans tente, petits rires 2025 ",
+    "category": "amour",
     "isFavorite": false,
     "isDateUnknown": false
   }
