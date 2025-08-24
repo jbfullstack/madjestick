@@ -68,11 +68,21 @@
   },
   {
     "id": 1751701337651,
-    "text": "Tous ceux que l’on croise nous apporte de la joie… soit en arrivant, soit parce qu’ils s’en vont ",
+    "text": "Tous ceux que l’on croise nous apporte de la joie… soit en arrivant, soit parce qu’ils s’en vont",
     "author": "Monster Munch",
     "date": "2025-06-28",
-    "context": "Citation améliorée de l’accrobranche ",
+    "context": "Citation améliorée de l’accrobranche",
     "category": "quotidien",
+    "isFavorite": false,
+    "isDateUnknown": false
+  },
+  {
+    "id": 1756041354706,
+    "text": "Excusez moi d’être pardon ",
+    "author": "Djé",
+    "date": "2022-08-19",
+    "context": "Djé bourré qui faisait le malin ",
+    "category": "humour",
     "isFavorite": false,
     "isDateUnknown": false
   }
