@@ -88,11 +88,21 @@
   },
   {
     "id": 1756041445900,
-    "text": "Ce n’est pas de la rigolade, c’est un sourire qui explose ",
+    "text": "Ce n’est pas de la rigolade, c’est un sourire qui explose",
     "author": "Madeleine",
     "date": "2025-08-24",
-    "context": "Camping dans tente, petits rires 2025 ",
+    "context": "Camping dans tente, petits rires 2025",
     "category": "amour",
+    "isFavorite": false,
+    "isDateUnknown": false
+  },
+  {
+    "id": 1757758826432,
+    "text": "Plus tu es lourd, plus tu es difficile à kidnapper alors protèges toi et manges des gâteaux ! ",
+    "author": "Monster Munch",
+    "date": "2025-09-13",
+    "context": "Roulotte 50is apres une bonne matinée à Cabris et Grasse ",
+    "category": "quotidien",
     "isFavorite": false,
     "isDateUnknown": false
   }
