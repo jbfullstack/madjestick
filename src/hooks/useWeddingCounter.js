@@ -15,34 +15,54 @@ const useWeddingCounter = () => {
   useEffect(() => {
     const updateTimeSinceWedding = () => {
       const now = new Date();
-      const diffMs = Math.abs(now - weddingDate);
 
-      // More accurate calculation
-      const seconds = Math.floor(diffMs / 1000);
-      const minutes = Math.floor(seconds / 60);
-      const hours = Math.floor(minutes / 60);
-      const totalDays = Math.floor(hours / 24);
+      // Calendar-based calculation
+      let years = now.getFullYear() - weddingDate.getFullYear();
+      let months = now.getMonth() - weddingDate.getMonth();
+      let days = now.getDate() - weddingDate.getDate();
+      let hours = now.getHours() - weddingDate.getHours();
+      let minutes = now.getMinutes() - weddingDate.getMinutes();
+      let seconds = now.getSeconds() - weddingDate.getSeconds();
 
-      // Calculate years (approximate)
-      const years = Math.floor(totalDays / 365);
-      const remainingDaysAfterYears = totalDays - years * 365;
+      // Adjust for negative seconds
+      if (seconds < 0) {
+        seconds += 60;
+        minutes--;
+      }
 
-      // Calculate months (approximate)
-      const months = Math.floor(remainingDaysAfterYears / 30);
-      const days = remainingDaysAfterYears - months * 30;
+      // Adjust for negative minutes
+      if (minutes < 0) {
+        minutes += 60;
+        hours--;
+      }
 
-      // Calculate remaining time units
-      const remainingHours = hours % 24;
-      const remainingMinutes = minutes % 60;
-      const remainingSeconds = seconds % 60;
+      // Adjust for negative hours
+      if (hours < 0) {
+        hours += 24;
+        days--;
+      }
+
+      // Adjust for negative days
+      if (days < 0) {
+        // Get the last day of the previous month
+        const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+        days += prevMonth.getDate();
+        months--;
+      }
+
+      // Adjust for negative months
+      if (months < 0) {
+        months += 12;
+        years--;
+      }
 
       setTimeSinceWedding({
         years,
         months,
         days,
-        hours: remainingHours,
-        minutes: remainingMinutes,
-        seconds: remainingSeconds,
+        hours,
+        minutes,
+        seconds,
       });
     };
 
