@@ -34,7 +34,7 @@ const HomePage = () => {
           <img
             key={index}
             src={photo}
-            alt={`Wedding photo ${index + 1}`}
+            alt={`Wedding memory ${index + 1}`}
             className="photo-thumbnail"
             onError={(e) => {
               e.target.src = 'https://via.placeholder.com/200x200/9370db/ffffff?text=No+Image';

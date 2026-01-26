@@ -4,7 +4,6 @@ import "../../styles/PhotoPage.css";
 import {
   loadPhotoLibrary,
   getPhotosByCategory,
-  PHOTO_CATEGORIES,
   getCategoryLabel,
   getAllPhotoCategories,
 } from "../../utils/photoLoader";
@@ -14,17 +13,17 @@ const PhotoPage = () => {
   const [photos, setPhotos] = useState([]);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
 
-  useEffect(() => {
-    loadPhotos();
-  }, [selectedCategory]);
-
-  const loadPhotos = () => {
+  const loadPhotos = React.useCallback(() => {
     if (selectedCategory === "all") {
       setPhotos(loadPhotoLibrary());
     } else {
       setPhotos(getPhotosByCategory(selectedCategory));
     }
-  };
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    loadPhotos();
+  }, [loadPhotos]);
 
   const openLightbox = (photo) => {
     setSelectedPhoto(photo);

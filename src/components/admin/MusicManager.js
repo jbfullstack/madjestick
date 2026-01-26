@@ -6,6 +6,7 @@ import { githubAPI } from "../../lib/githubAPI";
 
 const MusicManager = () => {
   const [musicItems, setMusicItems] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [selectedItem, setSelectedItem] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");

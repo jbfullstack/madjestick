@@ -10,6 +10,7 @@ import { githubAPI } from "../../lib/githubAPI";
 
 const CitationManager = () => {
   const [citations, setCitations] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [selectedCitation, setSelectedCitation] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");

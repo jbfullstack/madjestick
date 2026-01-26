@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 
 const useWeddingCounter = () => {
-  const weddingDate = new Date("2025-05-02T22:00:00");
   const [timeSinceWedding, setTimeSinceWedding] = useState({
     years: 0,
     months: 0,
@@ -13,6 +12,8 @@ const useWeddingCounter = () => {
   });
 
   useEffect(() => {
+    const weddingDate = new Date("2025-05-02T22:00:00");
+
     const updateTimeSinceWedding = () => {
       const now = new Date();
 
@@ -74,7 +75,7 @@ const useWeddingCounter = () => {
 
     // Cleanup interval on unmount
     return () => clearInterval(interval);
-  }, [weddingDate]);
+  }, []);
 
   return timeSinceWedding;
 };

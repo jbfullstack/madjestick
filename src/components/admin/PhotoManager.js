@@ -4,17 +4,15 @@ import "../../styles/AdminPage.css";
 import {
   loadPhotoLibrary,
   PHOTO_CATEGORIES,
-  getCategoryEmoji,
-  getCategoryLabel,
   getAllTags,
   getAllPhotoCategories,
   addPhotoCategory,
-  removePhotoCategory,
 } from "../../utils/photoLoader";
 import { githubAPI } from "../../lib/githubAPI";
 
 const PhotoManager = () => {
   const [photos, setPhotos] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -326,6 +324,7 @@ const PhotoManager = () => {
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleFixMissingPaths = async () => {
     if (
       window.confirm(
