@@ -452,5 +452,19 @@
     "tags": [],
     "isDateUnknown": false,
     "fullPath": "/images/IMG_5053_1771502812327_689xyf.jpeg"
+  },
+  {
+    "id": 1771502866112,
+    "title": "Djetski ",
+    "description": "",
+    "category": "portraits",
+    "file": "IMG_5033_1771502866118_adta0i.jpeg",
+    "date": "2026-02-18",
+    "tags": [
+      "djé",
+      "portrait"
+    ],
+    "isDateUnknown": false,
+    "fullPath": "/images/IMG_5033_1771502866118_adta0i.jpeg"
   }
 ]
