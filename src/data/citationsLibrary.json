@@ -125,5 +125,15 @@
     "category": "philosophie",
     "isFavorite": false,
     "isDateUnknown": false
+  },
+  {
+    "id": 1773174624656,
+    "text": "Ne fais pas du tricycle dans la piscine ",
+    "author": "Djé",
+    "date": "2026-03-08",
+    "context": "Apparement ce serait comme : fais attention Brigitte, tu pousses le bouchons un peu trop loin ",
+    "category": "quotidien",
+    "isFavorite": false,
+    "isDateUnknown": false
   }
 ]
