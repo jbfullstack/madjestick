@@ -111,8 +111,18 @@
     "text": "Vive les petits dej’ et vive les bonnes journées! Ça c’est la devise #baboumsshka",
     "author": "Djé",
     "date": "2026-03-09",
-    "context": "Un lundi matin entre deux ",
+    "context": "Un lundi matin entre deux",
     "category": "motivation",
+    "isFavorite": false,
+    "isDateUnknown": false
+  },
+  {
+    "id": 1773174528653,
+    "text": "Ne vas pas au Canada sans tes orteils",
+    "author": "Djé",
+    "date": "2026-03-08",
+    "context": "Toujours pas compris 😅",
+    "category": "philosophie",
     "isFavorite": false,
     "isDateUnknown": false
   }
